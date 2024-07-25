@@ -14,7 +14,8 @@ func main() {
   
   r.Use(middleware.Logger)
   r.Get("/", methods.GetUsers)
-  
+  r.Post("/register", methods.CreateUser)
+
   log.Println("Server running on Port 8080")
   log.Fatal(http.ListenAndServe(":8080", r))
 }

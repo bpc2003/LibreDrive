@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -38,5 +39,23 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Internal Error"))
 	} else {
 		fmt.Fprintf(w, "%v\n", users)
+	}
+}
+
+func CreateUser(w http.ResponseWriter, r *http.Request) {
+	var u users.CreateUserParams
+	err := json.NewDecoder(r.Body).Decode(&u)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Internal Error"))
+	} else {
+		u, err := q.CreateUser(ctx, u)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Internal Error"))
+		} else {
+			enc := json.NewEncoder(w)
+			enc.Encode(u)
+		}
 	}
 }
