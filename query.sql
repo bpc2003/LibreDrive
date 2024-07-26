@@ -13,3 +13,12 @@ INSERT INTO Users (
   ?
 )
 RETURNING *;
+
+-- name: DeleteUser :exec
+DELETE From Users WHERE id = ?;
+
+-- name: GetUserById :one
+SELECT * FROM Users WHERE id = ?;
+
+-- name: ChangePassword :one
+UPDATE Users SET password = ? WHERE id = ? RETURNING *;

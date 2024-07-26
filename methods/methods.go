@@ -2,13 +2,16 @@ package methods
 
 import (
 	"context"
+	"crypto/sha1"
 	"database/sql"
 	_ "embed"
+	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	_ "github.com/mattn/go-sqlite3"
 	"libredrive/users"
 )
@@ -33,29 +36,85 @@ func init() {
 }
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
+	enc := json.NewEncoder(w)
 	users, err := q.GetUsers(ctx)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Internal Error"))
+		enc.Encode(errStruct{Success: false, Msg: "Internal Error"})
 	} else {
-		fmt.Fprintf(w, "%v\n", users)
+		enc.Encode(users)
+	}
+}
+
+func GetUserById(w http.ResponseWriter, r *http.Request) {
+	enc := json.NewEncoder(w)
+
+	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		enc.Encode(errStruct{Success: false, Msg: "Invalid ID"})
+		return
+	}
+
+	user, err := q.GetUserById(ctx, int64(userId))
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		enc.Encode(errStruct{Success: false, Msg: "No User with ID of " + strconv.Itoa(userId)})
+	} else {
+		enc.Encode(user)
+	}
+}
+
+func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
+	enc := json.NewEncoder(w)
+	var passwordParams users.ChangePasswordParams
+
+	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		enc.Encode(errStruct{Success: false, Msg: "Invalid ID"})
+		return
+	}
+	passwordParams.ID = int64(userId)
+
+	err = json.NewDecoder(r.Body).Decode(&passwordParams)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		enc.Encode(errStruct{Success: false, Msg: "Internal Error"})
+	} else {
+		h := sha1.New()
+		h.Write([]byte(passwordParams.Password))
+		passwordParams.Password = base64.URLEncoding.EncodeToString(h.Sum(nil))
+
+		user, err := q.ChangePassword(ctx, passwordParams)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			enc.Encode(errStruct{Success: false, Msg: "Internal Error"})
+		} else {
+			enc.Encode(user)
+		}
 	}
 }
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
-	var u users.CreateUserParams
-	err := json.NewDecoder(r.Body).Decode(&u)
+	var userParams users.CreateUserParams
+	enc := json.NewEncoder(w)
+
+	err := json.NewDecoder(r.Body).Decode(&userParams)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Internal Error"))
+		enc.Encode(errStruct{Success: false, Msg: "Internal Error"})
 	} else {
-		u, err := q.CreateUser(ctx, u)
+		h := sha1.New()
+		h.Write([]byte(userParams.Password))
+		userParams.Password = base64.URLEncoding.EncodeToString(h.Sum(nil))
+
+		user, err := q.CreateUser(ctx, userParams)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Internal Error"))
+			enc.Encode(errStruct{Success: false, Msg: "Internal Error"})
 		} else {
-			enc := json.NewEncoder(w)
-			enc.Encode(u)
+			enc.Encode(user)
 		}
 	}
 }

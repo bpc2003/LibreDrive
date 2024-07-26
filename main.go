@@ -13,8 +13,11 @@ func main() {
   r := chi.NewRouter()
   
   r.Use(middleware.Logger)
-  r.Get("/", methods.GetUsers)
-  r.Post("/register", methods.CreateUser)
+
+  r.Get("/api/users", methods.GetUsers)
+  r.Get("/api/users/{userId}", methods.GetUserById)
+  r.Put("/api/users/{userId}", methods.ChangeUserPassword)
+  r.Post("/api/register", methods.CreateUser)
 
   log.Println("Server running on Port 8080")
   log.Fatal(http.ListenAndServe(":8080", r))

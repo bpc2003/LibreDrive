@@ -9,6 +9,22 @@ import (
 	"context"
 )
 
+const changePassword = `-- name: ChangePassword :one
+UPDATE Users SET password = ? WHERE id = ? RETURNING id, username, password
+`
+
+type ChangePasswordParams struct {
+	Password string
+	ID       int64
+}
+
+func (q *Queries) ChangePassword(ctx context.Context, arg ChangePasswordParams) (User, error) {
+	row := q.db.QueryRowContext(ctx, changePassword, arg.Password, arg.ID)
+	var i User
+	err := row.Scan(&i.ID, &i.Username, &i.Password)
+	return i, err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO Users (
   username,
@@ -32,6 +48,15 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const deleteUser = `-- name: DeleteUser :exec
+DELETE From Users WHERE id = ?
+`
+
+func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, deleteUser, id)
+	return err
+}
+
 const getUser = `-- name: GetUser :one
 SELECT id, username, password FROM Users WHERE username = ? AND password = ?
 `
@@ -43,6 +68,17 @@ type GetUserParams struct {
 
 func (q *Queries) GetUser(ctx context.Context, arg GetUserParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUser, arg.Username, arg.Password)
+	var i User
+	err := row.Scan(&i.ID, &i.Username, &i.Password)
+	return i, err
+}
+
+const getUserById = `-- name: GetUserById :one
+SELECT id, username, password FROM Users WHERE id = ?
+`
+
+func (q *Queries) GetUserById(ctx context.Context, id int64) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserById, id)
 	var i User
 	err := row.Scan(&i.ID, &i.Username, &i.Password)
 	return i, err
