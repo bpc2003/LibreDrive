@@ -10,10 +10,11 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/golang-jwt/jwt/v5"
+	_ "github.com/mattn/go-sqlite3"
 	"libredrive/users"
 )
 
@@ -153,14 +154,16 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	h := sha1.New()
 	h.Write([]byte(loginParams.Password))
 	loginParams.Password = base64.URLEncoding.EncodeToString(h.Sum(nil))
-	
+
 	user, err := q.GetUser(ctx, loginParams)
 	if err != nil {
 		w.WriteHeader(http.StatusForbidden)
 		enc.Encode(errStruct{Success: false, Msg: "Incorrect username or password"})
 	} else {
 		tok := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-			"Id": user.ID,
+			"exp":     time.Now().Add(time.Duration(time.Minute * 30)).Unix(),
+			"iat":     time.Now().Unix(),
+			"id":      user.ID,
 			"isAdmin": user.Isadmin,
 		})
 		tokString, _ := tok.SignedString([]byte(user.Password))
