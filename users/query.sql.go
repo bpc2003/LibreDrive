@@ -10,7 +10,7 @@ import (
 )
 
 const changePassword = `-- name: ChangePassword :one
-UPDATE Users SET password = ? WHERE id = ? RETURNING id, username, password
+UPDATE Users SET password = ? WHERE id = ? RETURNING id, username, password, isadmin
 `
 
 type ChangePasswordParams struct {
@@ -21,30 +21,43 @@ type ChangePasswordParams struct {
 func (q *Queries) ChangePassword(ctx context.Context, arg ChangePasswordParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, changePassword, arg.Password, arg.ID)
 	var i User
-	err := row.Scan(&i.ID, &i.Username, &i.Password)
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.Isadmin,
+	)
 	return i, err
 }
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO Users (
   username,
-  password
+  password,
+  isAdmin
 ) VALUES (
+  ?,
   ?,
   ?
 )
-RETURNING id, username, password
+RETURNING id, username, password, isadmin
 `
 
 type CreateUserParams struct {
 	Username string
 	Password string
+	Isadmin  bool
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Password)
+	row := q.db.QueryRowContext(ctx, createUser, arg.Username, arg.Password, arg.Isadmin)
 	var i User
-	err := row.Scan(&i.ID, &i.Username, &i.Password)
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.Isadmin,
+	)
 	return i, err
 }
 
@@ -58,7 +71,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, username, password FROM Users WHERE username = ? AND password = ?
+SELECT id, username, password, isadmin FROM Users WHERE username = ? AND password = ?
 `
 
 type GetUserParams struct {
@@ -69,23 +82,33 @@ type GetUserParams struct {
 func (q *Queries) GetUser(ctx context.Context, arg GetUserParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUser, arg.Username, arg.Password)
 	var i User
-	err := row.Scan(&i.ID, &i.Username, &i.Password)
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.Isadmin,
+	)
 	return i, err
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, username, password FROM Users WHERE id = ?
+SELECT id, username, password, isadmin FROM Users WHERE id = ?
 `
 
 func (q *Queries) GetUserById(ctx context.Context, id int64) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUserById, id)
 	var i User
-	err := row.Scan(&i.ID, &i.Username, &i.Password)
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Password,
+		&i.Isadmin,
+	)
 	return i, err
 }
 
 const getUsers = `-- name: GetUsers :many
-SELECT id, username, password FROM Users
+SELECT id, username, password, isadmin FROM Users
 `
 
 func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
@@ -97,7 +120,12 @@ func (q *Queries) GetUsers(ctx context.Context) ([]User, error) {
 	var items []User
 	for rows.Next() {
 		var i User
-		if err := rows.Scan(&i.ID, &i.Username, &i.Password); err != nil {
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Password,
+			&i.Isadmin,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

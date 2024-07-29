@@ -7,8 +7,10 @@ SELECT * FROM Users WHERE username = ? AND password = ?;
 -- name: CreateUser :one
 INSERT INTO Users (
   username,
-  password
+  password,
+  isAdmin
 ) VALUES (
+  ?,
   ?,
   ?
 )

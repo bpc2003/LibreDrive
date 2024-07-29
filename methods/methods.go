@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/golang-jwt/jwt/v5"
 	"libredrive/users"
 )
 
@@ -59,7 +60,7 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 	user, err := q.GetUserById(ctx, int64(userId))
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		enc.Encode(errStruct{Success: false, Msg: "No User with ID of " + strconv.Itoa(userId)})
+		enc.Encode(errStruct{Success: false, Msg: "No User with ID " + strconv.Itoa(userId)})
 	} else {
 		enc.Encode(user)
 	}
@@ -96,6 +97,25 @@ func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func DeleteUser(w http.ResponseWriter, r *http.Request) {
+	enc := json.NewEncoder(w)
+
+	id, err := strconv.Atoi(chi.URLParam(r, "userId"))
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		enc.Encode(errStruct{Success: false, Msg: "Invalid ID"})
+		return
+	}
+	err = q.DeleteUser(ctx, int64(id))
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		enc.Encode(errStruct{Success: false, Msg: "No user with ID " + strconv.Itoa(id)})
+	} else {
+		w.WriteHeader(http.StatusNoContent)
+		enc.Encode(errStruct{Success: true, Msg: ""})
+	}
+}
+
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	var userParams users.CreateUserParams
 	enc := json.NewEncoder(w)
@@ -116,5 +136,34 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		} else {
 			enc.Encode(user)
 		}
+	}
+}
+
+func LoginUser(w http.ResponseWriter, r *http.Request) {
+	var loginParams users.GetUserParams
+	enc := json.NewEncoder(w)
+
+	err := json.NewDecoder(r.Body).Decode(&loginParams)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		enc.Encode(errStruct{Success: false, Msg: "Internal Error"})
+		return
+	}
+
+	h := sha1.New()
+	h.Write([]byte(loginParams.Password))
+	loginParams.Password = base64.URLEncoding.EncodeToString(h.Sum(nil))
+	
+	user, err := q.GetUser(ctx, loginParams)
+	if err != nil {
+		w.WriteHeader(http.StatusForbidden)
+		enc.Encode(errStruct{Success: false, Msg: "Incorrect username or password"})
+	} else {
+		tok := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"Id": user.ID,
+			"isAdmin": user.Isadmin,
+		})
+		tokString, _ := tok.SignedString([]byte(user.Password))
+		w.Write([]byte(tokString))
 	}
 }
