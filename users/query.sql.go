@@ -71,16 +71,11 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, username, password, isadmin FROM Users WHERE username = ? AND password = ?
+SELECT id, username, password, isadmin FROM Users WHERE username = ?
 `
 
-type GetUserParams struct {
-	Username string
-	Password string
-}
-
-func (q *Queries) GetUser(ctx context.Context, arg GetUserParams) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUser, arg.Username, arg.Password)
+func (q *Queries) GetUser(ctx context.Context, username string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUser, username)
 	var i User
 	err := row.Scan(
 		&i.ID,

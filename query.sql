@@ -2,7 +2,7 @@
 SELECT * FROM Users;
 
 -- name: GetUser :one
-SELECT * FROM Users WHERE username = ? AND password = ?;
+SELECT * FROM Users WHERE username = ?;
 
 -- name: CreateUser :one
 INSERT INTO Users (
