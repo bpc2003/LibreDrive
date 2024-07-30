@@ -100,6 +100,11 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		enc.Encode(types.ErrStruct{Success: false, Msg: "Internal Error"})
 	} else {
+		if err := os.MkdirAll("user_data/"+userParams.Username, 0750); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			enc.Encode(types.ErrStruct{Success: false, Msg: err.Error()})
+			return
+		}
 		password, _ := bcrypt.GenerateFromPassword([]byte(userParams.Password), 14)
 		userParams.Password = string(password)
 
