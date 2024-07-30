@@ -25,13 +25,23 @@ func main() {
 
 	r.Route("/api/users", func(r chi.Router) {
 		r.Use(customMiddleware.Auth)
-		r.Get("/", methods.GetUsers)
-		r.Get("/{userId}", methods.GetUserById)
-		r.Put("/{userId}", methods.ChangeUserPassword)
-		r.Delete("/{userId}", methods.DeleteUser)
+		r.Use(customMiddleware.IsAuth)
+		r.Get("/", methods.GetUsers)	
 	})
 
-	r.Post("/api/register", methods.CreateUser)
+	r.Route("/api/users/{userId}", func(r chi.Router) {
+		r.Use(customMiddleware.Auth)
+		r.Use(customMiddleware.IsAuth)
+		r.Get("/", methods.GetUserById)
+		r.Put("/", methods.ChangeUserPassword)
+		r.Delete("/", methods.DeleteUser)
+	})
+
+	r.Route("/api/register", func(r chi.Router) {
+		r.Use(customMiddleware.Auth)
+		r.Use(customMiddleware.IsAuth)
+		r.Post("/", methods.CreateUser)
+	})
 
 	r.Post("/api/login", methods.LoginUser)
 

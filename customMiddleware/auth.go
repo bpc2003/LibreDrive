@@ -2,14 +2,12 @@ package customMiddleware
 
 import (
 	"context"
-	_ "embed"
 	"encoding/json"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
-	_ "github.com/mattn/go-sqlite3"
 	"libredrive/types"
 )
 

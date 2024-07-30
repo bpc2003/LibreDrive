@@ -17,12 +17,6 @@ import (
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 	enc := json.NewEncoder(w)
-	if r.Context().Value("isAdmin") == false {
-		w.WriteHeader(http.StatusForbidden)
-		enc.Encode(types.ErrStruct{Success: false, Msg: "Forbidden"})
-		return
-	}
-
 	users, err := types.Queries.GetUsers(types.CTX)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -38,12 +32,6 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		enc.Encode(types.ErrStruct{Success: false, Msg: "Invalid ID"})
-		return
-	}
-
-	if r.Context().Value("isAdmin") == false && r.Context().Value("id") != float64(userId) {
-		w.WriteHeader(http.StatusForbidden)
-		enc.Encode(types.ErrStruct{Success: false, Msg: "Forbidden"})
 		return
 	}
 
@@ -65,12 +53,6 @@ func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.Context().Value("isAdmin") == false && r.Context().Value("id") != float64(userId) {
-		w.WriteHeader(http.StatusForbidden)
-		enc.Encode(types.ErrStruct{Success: false, Msg: "Forbidden"})
-		return
-	}
-
 	passwordParams := users.ChangePasswordParams{}
 	if err = json.NewDecoder(r.Body).Decode(&passwordParams); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -84,7 +66,7 @@ func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 	user, err := types.Queries.ChangePassword(types.CTX, passwordParams)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		enc.Encode(types.ErrorStruct{Success: false, Msg: "No user with ID " + strconv.Itoa(userId)})
+		enc.Encode(types.ErrStruct{Success: false, Msg: "No user with ID " + strconv.Itoa(userId)})
 	} else {
 		enc.Encode(user)
 	}
@@ -96,12 +78,6 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		enc.Encode(types.ErrStruct{Success: false, Msg: "Invalid ID"})
-		return
-	}
-
-	if r.Context().Value("isAdmin") == false && r.Context().Value("id") != float64(userId) {
-		w.WriteHeader(http.StatusForbidden)
-		enc.Encode(types.ErrStruct{Success: false, Msg: "Forbidden"})
 		return
 	}
 
