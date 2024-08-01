@@ -10,11 +10,11 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"libredrive/types"
-	"libredrive/users"
+	"libredrive/models"
 )
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
-	userParams := users.CreateUserParams{}
+	userParams := models.CreateUserParams{}
 	enc := json.NewEncoder(w)
 
 	err := json.NewDecoder(r.Body).Decode(&userParams)
@@ -30,7 +30,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			enc.Encode(types.ErrStruct{Success: false, Msg: "Internal Error"})
 		} else {
-			if err := os.MkdirAll("user_data/"+strconv.Itoa(int(user.ID)), 0750); err != nil {
+			if err := os.MkdirAll("users/"+strconv.Itoa(int(user.ID)), 0750); err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				enc.Encode(types.ErrStruct{Success: false, Msg: err.Error()})
 				return

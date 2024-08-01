@@ -8,7 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/crypto/bcrypt"
 	"libredrive/types"
-	"libredrive/users"
+	"libredrive/models"
 )
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
@@ -49,7 +49,7 @@ func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	passwordParams := users.ChangePasswordParams{}
+	passwordParams := models.ChangePasswordParams{}
 	if err = json.NewDecoder(r.Body).Decode(&passwordParams); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		enc.Encode(types.ErrStruct{Success: false, Msg: "Internal Error"})

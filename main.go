@@ -23,10 +23,12 @@ func main() {
 
 	r.Use(middleware.Logger)
 
-	r.Route("/", func(r chi.Router) {
+	r.Route("/api/files", func(r chi.Router) {
 		r.Use(customMiddleware.Auth)
 		r.Get("/", controllers.GetFiles)
 		r.Post("/", controllers.UploadFile)
+		r.Get("/{fileName}", controllers.GetFile)
+		r.Delete("/{fileName}", controllers.DeleteFile)
 	})
 
 	r.Route("/api/users", func(r chi.Router) {
