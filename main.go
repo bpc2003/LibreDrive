@@ -8,7 +8,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
 	"libredrive/controllers"
-	"libredrive/customMiddleware"
+	"libredrive/routers"
 )
 
 func init() {
@@ -23,34 +23,10 @@ func main() {
 
 	r.Use(middleware.Logger)
 
-	r.Route("/api/files", func(r chi.Router) {
-		r.Use(customMiddleware.Auth)
-		r.Get("/", controllers.GetFiles)
-		r.Post("/", controllers.UploadFile)
-		r.Get("/{fileName}", controllers.GetFile)
-		r.Delete("/{fileName}", controllers.DeleteFile)
-	})
-
-	r.Route("/api/users", func(r chi.Router) {
-		r.Use(customMiddleware.Auth)
-		r.Use(customMiddleware.IsAuth)
-		r.Get("/", controllers.GetUsers)
-	})
-
-	r.Route("/api/users/{userId}", func(r chi.Router) {
-		r.Use(customMiddleware.Auth)
-		r.Use(customMiddleware.IsAuth)
-		r.Get("/", controllers.GetUserById)
-		r.Put("/", controllers.ChangeUserPassword)
-		r.Delete("/", controllers.DeleteUser)
-	})
-
-	r.Route("/api/register", func(r chi.Router) {
-		r.Use(customMiddleware.Auth)
-		r.Use(customMiddleware.IsAuth)
-		r.Post("/", controllers.CreateUser)
-	})
-
+	r.Route("/api/files", routers.FileRoutes)
+	r.Route("/api/users", routers.GroupRoutes)
+	r.Route("/api/users/{userId}", routers.IndividualRoutes)
+	r.Route("/api/register", routers.RegisterRoute)
 	r.Post("/api/login", controllers.LoginUser)
 
 	log.Println("Server running on Port 8080")

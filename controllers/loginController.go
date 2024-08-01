@@ -9,8 +9,8 @@ import (
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
-	"libredrive/types"
 	"libredrive/models"
+	"libredrive/types"
 )
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {

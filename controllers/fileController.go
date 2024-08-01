@@ -7,8 +7,8 @@ import (
 	"os"
 	"strconv"
 
-	"libredrive/types"
 	"github.com/go-chi/chi/v5"
+	"libredrive/types"
 )
 
 func GetFiles(w http.ResponseWriter, r *http.Request) {
@@ -68,7 +68,7 @@ func DeleteFile(w http.ResponseWriter, r *http.Request) {
 	fileName := chi.URLParam(r, "fileName")
 	id := int(r.Context().Value("id").(float64))
 
-	if err := os.Remove("users/"+strconv.Itoa(id)+"/"+fileName); err != nil {
+	if err := os.Remove("users/" + strconv.Itoa(id) + "/" + fileName); err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		enc.Encode(types.ErrStruct{Success: false, Msg: "No file named " + fileName})
 	} else {
