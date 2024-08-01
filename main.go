@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
-	"libredrive/methods"
+	"libredrive/controllers"
 	"libredrive/customMiddleware"
 )
 
@@ -23,27 +23,33 @@ func main() {
 
 	r.Use(middleware.Logger)
 
+	r.Route("/", func(r chi.Router) {
+		r.Use(customMiddleware.Auth)
+		r.Get("/", controllers.GetFiles)
+		r.Post("/", controllers.UploadFile)
+	})
+
 	r.Route("/api/users", func(r chi.Router) {
 		r.Use(customMiddleware.Auth)
 		r.Use(customMiddleware.IsAuth)
-		r.Get("/", methods.GetUsers)	
+		r.Get("/", controllers.GetUsers)
 	})
 
 	r.Route("/api/users/{userId}", func(r chi.Router) {
 		r.Use(customMiddleware.Auth)
 		r.Use(customMiddleware.IsAuth)
-		r.Get("/", methods.GetUserById)
-		r.Put("/", methods.ChangeUserPassword)
-		r.Delete("/", methods.DeleteUser)
+		r.Get("/", controllers.GetUserById)
+		r.Put("/", controllers.ChangeUserPassword)
+		r.Delete("/", controllers.DeleteUser)
 	})
 
 	r.Route("/api/register", func(r chi.Router) {
 		r.Use(customMiddleware.Auth)
 		r.Use(customMiddleware.IsAuth)
-		r.Post("/", methods.CreateUser)
+		r.Post("/", controllers.CreateUser)
 	})
 
-	r.Post("/api/login", methods.LoginUser)
+	r.Post("/api/login", controllers.LoginUser)
 
 	log.Println("Server running on Port 8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
