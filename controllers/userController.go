@@ -9,16 +9,15 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"libredrive/models"
 	"libredrive/types"
+	"libredrive/templates"
 )
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
-	enc := json.NewEncoder(w)
 	users, err := types.Queries.GetUsers(types.CTX)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		enc.Encode(types.ErrStruct{Success: false, Msg: "Internal Error"})
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	} else {
-		enc.Encode(users)
+		templates.Users(users).Render(types.CTX, w)
 	}
 }
 

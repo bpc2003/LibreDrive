@@ -14,21 +14,20 @@ import (
 	"github.com/kevinburke/nacl"
 	"github.com/kevinburke/nacl/secretbox"
 	"libredrive/types"
+	"libredrive/templates"
 )
 
 func GetFiles(w http.ResponseWriter, r *http.Request) {
-	enc := json.NewEncoder(w)
 	id := int(r.Context().Value("id").(float64))
 
 	if files, err := os.ReadDir("users/" + strconv.Itoa(id)); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		enc.Encode(types.ErrStruct{Success: false, Msg: "Internal Error"})
+		http.Error(w, "Internal Error", http.StatusInternalServerError)
 	} else {
 		fileNames := make([]string, 0)
 		for _, f := range files {
-			fileNames = append(fileNames, f.Name())
+			fileNames = append(fileNames, f.Name()[:len(f.Name())-4])
 		}
-		enc.Encode(fileNames)
+		templates.Files(fileNames).Render(types.CTX, w)
 	}
 }
 

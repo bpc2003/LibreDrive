@@ -1,0 +1,15 @@
+package templates
+
+import (
+  "fmt"
+
+  "libredrive/models"
+)
+
+templ Users(users []models.User) {
+  <ul>
+    for _, user := range users {
+      <li id={ fmt.Sprint(user.ID) }>{ user.Username } - { fmt.Sprint(user.Isadmin) }</li>
+    }
+  </ul>
+}

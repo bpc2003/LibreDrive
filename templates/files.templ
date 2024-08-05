@@ -1,0 +1,9 @@
+package templates
+
+templ Files(files []string) {
+  <ul>
+    for _, fn := range files {
+      <li>{ fn }</li>
+    }
+  </ul>
+}
