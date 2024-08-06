@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -15,44 +15,35 @@ import (
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	userParams := models.CreateUserParams{}
-	enc := json.NewEncoder(w)
+	r.ParseForm()
+	userParams.Username = r.Form.Get("Username")
+	isAdmin, err := strconv.ParseBool(r.Form.Get("IsAdmin"))
+	if userParams.Username == "" || r.Form.Get("Password") == "" || err != nil {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
 
-	err := json.NewDecoder(r.Body).Decode(&userParams)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		enc.Encode(types.ErrStruct{Success: false, Msg: "Internal Error"})
+	userParams.Isadmin = isAdmin
+	password, _ := bcrypt.GenerateFromPassword([]byte(r.Form.Get("Password")), 14)
+	userParams.Password = string(password)
+
+	if user, err := types.Queries.CreateUser(types.CTX, userParams); err != nil {
+		http.Error(w, "Internal Error", http.StatusInternalServerError)
 	} else {
-		password, _ := bcrypt.GenerateFromPassword([]byte(userParams.Password), 14)
-		userParams.Password = string(password)
-
-		user, err := types.Queries.CreateUser(types.CTX, userParams)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			enc.Encode(types.ErrStruct{Success: false, Msg: "Internal Error"})
-		} else {
-			if err := os.MkdirAll("users/"+strconv.Itoa(int(user.ID)), 0750); err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				enc.Encode(types.ErrStruct{Success: false, Msg: err.Error()})
-				return
-			}
-			enc.Encode(user)
-		}
+		os.MkdirAll(fmt.Sprintf("users/%d", user.ID), 0750)
+		w.Write([]byte("Successfully created user"))
 	}
 }
 
 func LoginUser(w http.ResponseWriter, r *http.Request) {
-	enc := json.NewEncoder(w)
-	loginParams := types.LoginParams{}
-	if err := json.NewDecoder(r.Body).Decode(&loginParams); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		enc.Encode(types.ErrStruct{Success: false, Msg: "Internal Error"})
-		return
-	}
+	r.ParseForm()
+	Username := r.Form.Get("Username")
+	Password := r.Form.Get("Password")
 
-	user, err := types.Queries.GetUser(types.CTX, loginParams.Username)
-	if err != nil || bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(loginParams.Password)) != nil {
-		w.WriteHeader(http.StatusForbidden)
-		enc.Encode(types.ErrStruct{Success: false, Msg: "Incorrect username or password"})
+	user, err := types.Queries.GetUser(types.CTX, Username)
+	if err != nil ||
+		bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(Password)) != nil {
+		http.Error(w, "Incorrect Username or Password", http.StatusForbidden)
 		return
 	}
 	tok := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{

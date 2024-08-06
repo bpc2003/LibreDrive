@@ -8,8 +8,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/crypto/bcrypt"
 	"libredrive/models"
-	"libredrive/types"
 	"libredrive/templates"
+	"libredrive/types"
 )
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
