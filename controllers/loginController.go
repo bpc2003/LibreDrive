@@ -16,13 +16,13 @@ import (
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	userParams := models.CreateUserParams{}
 	r.ParseForm()
-	userParams.Username = r.Form.Get("Username")
 	isAdmin, err := strconv.ParseBool(r.Form.Get("IsAdmin"))
-	if userParams.Username == "" || r.Form.Get("Password") == "" || err != nil {
+	if r.Form.Get("Username") == "" || r.Form.Get("Password") == "" || err != nil {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
 
+	userParams.Username = r.Form.Get("Username")
 	userParams.Isadmin = isAdmin
 	password, _ := bcrypt.GenerateFromPassword([]byte(r.Form.Get("Password")), 14)
 	userParams.Password = string(password)

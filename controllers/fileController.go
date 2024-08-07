@@ -2,13 +2,11 @@ package controllers
 
 import (
 	"crypto/sha256"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/kevinburke/nacl"
@@ -20,7 +18,7 @@ import (
 func GetFiles(w http.ResponseWriter, r *http.Request) {
 	id := int(r.Context().Value("id").(float64))
 
-	if files, err := os.ReadDir("users/" + strconv.Itoa(id)); err != nil {
+	if files, err := os.ReadDir(fmt.Sprintf("users/%d", id)); err != nil {
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 	} else {
 		fileNames := make([]string, 0)
@@ -32,87 +30,60 @@ func GetFiles(w http.ResponseWriter, r *http.Request) {
 }
 
 func UploadFile(w http.ResponseWriter, r *http.Request) {
-	enc := json.NewEncoder(w)
 	id := int(r.Context().Value("id").(float64))
 	r.ParseMultipartForm(10 << 20)
 
 	file, handler, err := r.FormFile("upload")
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		enc.Encode(types.ErrStruct{Success: false, Msg: err.Error()})
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer file.Close()
 
 	user, _ := types.Queries.GetUserById(types.CTX, int64(id))
-	key, err := nacl.Load(fmt.Sprintf("%x", sha256.Sum256([]byte(user.Password))))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	buf, err := io.ReadAll(file)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		enc.Encode(types.ErrStruct{Success: false, Msg: err.Error()})
-		return
-	}
+	key, _ := nacl.Load(fmt.Sprintf("%x", sha256.Sum256([]byte(user.Password))))
+	buf, _ := io.ReadAll(file)
 
 	encrypted := secretbox.EasySeal(buf, key)
-	if err = os.WriteFile("users/"+strconv.Itoa(id)+"/"+handler.Filename+".enc", encrypted, 0750); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		enc.Encode(types.ErrStruct{Success: false, Msg: err.Error()})
+	if err = os.WriteFile(fmt.Sprintf("users/%d/%s.enc", id, handler.Filename), encrypted, 0750); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	} else {
 		w.WriteHeader(http.StatusNoContent)
-		enc.Encode(types.ErrStruct{Success: true, Msg: ""})
 	}
 }
 
 func GetFile(w http.ResponseWriter, r *http.Request) {
 	fileName := chi.URLParam(r, "fileName")
 	id := int(r.Context().Value("id").(float64))
-
 	user, _ := types.Queries.GetUserById(types.CTX, int64(id))
-	key, err := nacl.Load(fmt.Sprintf("%x", sha256.Sum256([]byte(user.Password))))
-	if err != nil {
-		log.Fatal(err)
-	}
+	key, _ := nacl.Load(fmt.Sprintf("%x", sha256.Sum256([]byte(user.Password))))
 
-	fp, err := os.Open("users/" + strconv.Itoa(id) + "/" + fileName + ".enc")
+	fp, err := os.Open(fmt.Sprintf("users/%d/%s.enc", id, fileName))
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("File doesn't exist"))
+		http.Error(w, fmt.Sprintf("File '%s' doesn't exist", fileName), http.StatusNotFound)
 		return
 	}
 	defer fp.Close()
-
-	buf, err := io.ReadAll(fp)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Internal Error"))
-		return
-	}
+	buf, _ := io.ReadAll(fp)
 
 	if buf, err = secretbox.EasyOpen(buf, key); err != nil {
 		log.Fatal(err)
 	} else {
-		fp, _ = os.Create("users/" + strconv.Itoa(id) + "/" + fileName)
+		fp, _ = os.Create(fmt.Sprintf("users/%d/%s", id, fileName))
 		defer fp.Close()
 		io.WriteString(fp, string(buf))
-		http.ServeFile(w, r, "users/"+strconv.Itoa(id)+"/"+fileName)
-		os.Remove("users/" + strconv.Itoa(id) + "/" + fileName)
+		http.ServeFile(w, r, fmt.Sprintf("users/%d/%s", id, fileName))
+		os.Remove(fmt.Sprintf("users/%d/%s", id, fileName))
 	}
 }
 
 func DeleteFile(w http.ResponseWriter, r *http.Request) {
-	enc := json.NewEncoder(w)
 	fileName := chi.URLParam(r, "fileName")
 	id := int(r.Context().Value("id").(float64))
 
-	if err := os.Remove("users/" + strconv.Itoa(id) + "/" + fileName); err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		enc.Encode(types.ErrStruct{Success: false, Msg: "No file named " + fileName})
+	if err := os.Remove(fmt.Sprintf("users/%d/%s.enc", id, fileName)); err != nil {
+		http.Error(w, fmt.Sprintf("File '%s' doesn't exist", fileName), http.StatusNotFound)
 	} else {
 		w.WriteHeader(http.StatusNoContent)
-		enc.Encode(types.ErrStruct{Success: true, Msg: ""})
 	}
 }

@@ -1,11 +1,17 @@
 package controllers
 
 import (
+	"crypto/sha256"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/kevinburke/nacl"
+	"github.com/kevinburke/nacl/secretbox"
 	"golang.org/x/crypto/bcrypt"
 	"libredrive/models"
 	"libredrive/templates"
@@ -40,48 +46,57 @@ func GetUserById(w http.ResponseWriter, r *http.Request) {
 }
 
 func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
-	enc := json.NewEncoder(w)
+	passwordParams := models.ChangePasswordParams{}
 	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		enc.Encode(types.ErrStruct{Success: false, Msg: "Invalid ID"})
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}
-
-	passwordParams := models.ChangePasswordParams{}
-	if err = json.NewDecoder(r.Body).Decode(&passwordParams); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		enc.Encode(types.ErrStruct{Success: false, Msg: "Internal Error"})
+	r.ParseForm()
+	if r.Form.Get("Password") == "" || len(r.Form.Get("Password")) > 72 {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
 	passwordParams.ID = int64(userId)
-	password, _ := bcrypt.GenerateFromPassword([]byte(passwordParams.Password), 14)
+	password, _ := bcrypt.GenerateFromPassword([]byte(r.Form.Get("Password")), 14)
 	passwordParams.Password = string(password)
-
-	user, err := types.Queries.ChangePassword(types.CTX, passwordParams)
+	user, err := types.Queries.GetUserById(types.CTX, passwordParams.ID)
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		enc.Encode(types.ErrStruct{Success: false, Msg: "No user with ID " + strconv.Itoa(userId)})
+		http.Error(w, fmt.Sprintf("No user with ID of %d", passwordParams.ID), http.StatusNotFound)
+		return
+	}
+
+	if nu, err := types.Queries.ChangePassword(types.CTX, passwordParams); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	} else {
-		enc.Encode(user)
+		key, _ := nacl.Load(fmt.Sprintf("%x", sha256.Sum256([]byte(user.Password))))
+		nk, _ := nacl.Load(fmt.Sprintf("%x", sha256.Sum256([]byte(nu.Password))))
+		files, _ := os.ReadDir(fmt.Sprintf("users/%d", userId))
+		for _, file := range files {
+			f, _ := os.OpenFile(fmt.Sprintf("users/%d/%s", userId, file.Name()), os.O_RDWR, 0750)
+			defer f.Close()
+
+			buf, _ := io.ReadAll(f)
+			plain, _ := secretbox.EasyOpen(buf, key)
+			cipher := secretbox.EasySeal(plain, nk)
+			f.Seek(0, 0)
+			f.Write(cipher)
+		}
 	}
 }
 
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
-	enc := json.NewEncoder(w)
 	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		enc.Encode(types.ErrStruct{Success: false, Msg: "Invalid ID"})
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}
 
 	err = types.Queries.DeleteUser(types.CTX, int64(userId))
 	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		enc.Encode(types.ErrStruct{Success: false, Msg: "No user with ID " + strconv.Itoa(userId)})
+		http.Error(w, fmt.Sprintf("No User with ID of %d", userId), http.StatusNotFound)
 	} else {
 		w.WriteHeader(http.StatusNoContent)
-		enc.Encode(types.ErrStruct{Success: true, Msg: ""})
+		os.RemoveAll(fmt.Sprintf("users/%d", userId))
 	}
 }
