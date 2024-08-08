@@ -15,7 +15,6 @@ func GroupRoutes(r chi.Router) {
 func IndividualRoutes(r chi.Router) {
 	r.Use(customMiddleware.Auth)
 	r.Use(customMiddleware.IsAuth)
-	r.Get("/", controllers.GetUserById)
 	r.Put("/", controllers.ChangeUserPassword)
 	r.Delete("/", controllers.DeleteUser)
 }

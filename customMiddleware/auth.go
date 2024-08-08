@@ -2,22 +2,18 @@ package customMiddleware
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"os"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
-	"libredrive/types"
 )
 
 func Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		enc := json.NewEncoder(w)
 		auth := r.Header.Get("Authorization")
 		if auth == "" {
-			w.WriteHeader(http.StatusForbidden)
-			enc.Encode(types.ErrStruct{Success: false, Msg: "Forbidden"})
+			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
 		}
 		auth = strings.Split(auth, " ")[1]
@@ -26,8 +22,7 @@ func Auth(next http.Handler) http.Handler {
 			return []byte(os.Getenv("SECRET")), nil
 		})
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			enc.Encode(types.ErrStruct{Success: false, Msg: err.Error()})
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 		} else {
 			initContext := r.Context()
 			for key, val := range claims {

@@ -17,7 +17,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	userParams := models.CreateUserParams{}
 	r.ParseForm()
 	isAdmin, err := strconv.ParseBool(r.Form.Get("IsAdmin"))
-	if r.Form.Get("Username") == "" || r.Form.Get("Password") == "" || err != nil {
+	if r.Form.Get("Username") == "" || r.Form.Get("Password") == "" || len(r.Form.Get("Password")) > 72 || err != nil {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
