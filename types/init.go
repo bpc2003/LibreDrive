@@ -34,9 +34,9 @@ func init() {
 	if err = godotenv.Load(); err != nil {
 		log.Fatal(err)
 	}
-	if items, _ := Queries.GetUsers(CTX); len(items) == 0 {
+	if u, _ := Queries.GetUsers(CTX); len(u) == 0 {
 		password, _ := bcrypt.GenerateFromPassword([]byte(os.Getenv("ADMIN_PASSWORD")), 14)
-		_, err := Queries.CreateUser(CTX, models.CreateUserParams{Username: "admin", Password: string(password), Isadmin: true})
+		_, err = Queries.CreateUser(CTX, models.CreateUserParams{Username: "admin", Password: string(password), Isadmin: true})
 		if err != nil || os.MkdirAll("users/1", 0750) != nil {
 			log.Fatal(err)
 		}

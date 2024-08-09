@@ -20,9 +20,12 @@ func init() {
 
 func main() {
 	r := chi.NewRouter()
+	fs := http.FileServer(http.Dir("./public"))
 
 	r.Use(middleware.Logger)
 
+	r.Handle("/", fs)
+	r.Handle("/login/", fs)
 	r.Route("/api/files", routers.FileRoutes)
 	r.Route("/api/users", routers.GroupRoutes)
 	r.Route("/api/users/{userId}", routers.IndividualRoutes)

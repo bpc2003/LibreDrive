@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path"
 	"strconv"
-	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"libredrive/models"
 	"libredrive/types"
@@ -30,7 +29,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	if user, err := types.Queries.CreateUser(types.CTX, userParams); err != nil {
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 	} else {
-		os.MkdirAll(fmt.Sprintf("users/%d", user.ID), 0750)
+		os.MkdirAll(path.Join("users", strconv.Itoa(int(user.ID))), 0750)
 		w.Write([]byte("Successfully created user"))
 	}
 }
@@ -46,12 +45,12 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Incorrect Username or Password", http.StatusForbidden)
 		return
 	}
-	tok := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"exp":     time.Now().Add(time.Duration(time.Minute * 30)).Unix(),
-		"iat":     time.Now().Unix(),
-		"id":      user.ID,
-		"isAdmin": user.Isadmin,
-	})
-	tokString, _ := tok.SignedString([]byte(os.Getenv("SECRET")))
-	w.Write([]byte(tokString))
+	c := http.Cookie{
+		Name:   "auth",
+		Value:  fmt.Sprintf("%d&%t", user.ID, user.Isadmin),
+		MaxAge: 1800,
+		Path:   "/",
+	}
+	http.SetCookie(w, &c)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

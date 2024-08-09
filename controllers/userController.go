@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
@@ -48,9 +49,9 @@ func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 	} else {
 		key, _ := nacl.Load(fmt.Sprintf("%x", sha256.Sum256([]byte(user.Password))))
 		nk, _ := nacl.Load(fmt.Sprintf("%x", sha256.Sum256([]byte(nu.Password))))
-		files, _ := os.ReadDir(fmt.Sprintf("users/%d", userId))
+		files, _ := os.ReadDir(path.Join("users", strconv.Itoa(userId)))
 		for _, file := range files {
-			f, _ := os.OpenFile(fmt.Sprintf("users/%d/%s", userId, file.Name()), os.O_RDWR, 0750)
+			f, _ := os.OpenFile(path.Join("users", strconv.Itoa(userId), file.Name()), os.O_RDWR, 0750)
 			buf, _ := io.ReadAll(f)
 			plain, _ := secretbox.EasyOpen(buf, key)
 			cipher := secretbox.EasySeal(plain, nk)
