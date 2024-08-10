@@ -5,7 +5,11 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <script src="https://unpkg.com/htmx.org@2.0.1" integrity="sha384-QWGpdj554B4ETpJJC9z+ZHJcA/i59TyjxEPXiiUgN2WmTyV5OEZWCD6gQhgkdpB/" crossorigin="anonymous"></script>
   </head>
-  <body>
-    <div hx-get="/api/files" hx-trigger="load" hx-swap="innerHTML"></div>
+  <body hx-get="/api/files" hx-trigger="load" hx-target="#files">
+    <form hx-encoding="multipart/form-data" hx-post="/api/files">
+      <input type="file" name="upload">
+      <button>Upload</button>
+    </form>
+    <div id="files"></div>
   </body>
 </html>

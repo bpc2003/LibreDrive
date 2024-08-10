@@ -1,9 +1,13 @@
 package templates
 
+import "fmt"
+
 templ Files(files []string) {
   <ul>
-    for _, fn := range files {
-      <li>{ fn }</li>
+    for _, file := range files {
+      <li>
+        <a href={ templ.URL(fmt.Sprintf("/api/files/%s", file)) }>{ file }</a>
+      </li>
     }
   </ul>
 }

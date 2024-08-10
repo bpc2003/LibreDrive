@@ -19,7 +19,7 @@ func IsAuth(next http.Handler) http.Handler {
 				return
 			}
 
-			if float64(userId_int) == r.Context().Value("id").(float64) || r.Context().Value("isAdmin").(bool) {
+			if userId_int == r.Context().Value("id").(int) || r.Context().Value("isAdmin").(bool) {
 				next.ServeHTTP(w, r)
 			} else {
 				http.Error(w, "Forbidden", http.StatusForbidden)
