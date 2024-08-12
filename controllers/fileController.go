@@ -72,10 +72,12 @@ func GetFile(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	} else {
 		fp, _ = os.Create(path.Join("users", strconv.Itoa(id), fileName))
-		defer fp.Close()
-		io.WriteString(fp, string(buf))
-		http.ServeFile(w, r, fmt.Sprintf("users/%d/%s", id, fileName))
-		os.Remove(fmt.Sprintf("users/%d/%s", id, fileName))
+		fp.Write(buf)
+		fp.Close()
+
+		w.Header().Set("Content-Type", "application/octet-stream")
+		http.ServeFile(w, r, path.Join("users", strconv.Itoa(id), fileName))
+		os.Remove(path.Join("users", strconv.Itoa(id), fileName))
 	}
 }
 
@@ -86,6 +88,6 @@ func DeleteFile(w http.ResponseWriter, r *http.Request) {
 	if err := os.Remove(path.Join("users", strconv.Itoa(id), fileName+".enc")); err != nil {
 		http.Error(w, fmt.Sprintf("File '%s' doesn't exist", fileName), http.StatusNotFound)
 	} else {
-		w.WriteHeader(http.StatusNoContent)
+		w.Header().Set("HX-Refresh", "true")
 	}
 }

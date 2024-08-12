@@ -11,7 +11,7 @@ func Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		auth, _ := r.Cookie("auth")
 		if auth == nil {
-			http.Redirect(w, r, "/login/", http.StatusSeeOther)
+			w.Header().Set("HX-Redirect", "/login/")
 			return
 		}
 		attrs := strings.Split(auth.Value, "&")

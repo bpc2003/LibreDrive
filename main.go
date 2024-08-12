@@ -26,10 +26,12 @@ func main() {
 
 	r.Handle("/", fs)
 	r.Handle("/login/", fs)
+	r.Handle("/users/", fs)
 	r.Route("/api/files", routers.FileRoutes)
 	r.Route("/api/users", routers.GroupRoutes)
 	r.Route("/api/users/{userId}", routers.IndividualRoutes)
 	r.Route("/api/register", routers.RegisterRoute)
+	r.Route("/nav", routers.NavRoute)
 	r.Post("/api/login", controllers.LoginUser)
 
 	log.Println("Server running on Port 8080")

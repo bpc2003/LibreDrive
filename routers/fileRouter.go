@@ -10,6 +10,6 @@ func FileRoutes(r chi.Router) {
 	r.Use(customMiddleware.Auth)
 	r.Get("/", controllers.GetFiles)
 	r.Post("/", controllers.UploadFile)
- 	r.Get("/{fileName}", controllers.GetFile)
+	r.Get("/{fileName}", controllers.GetFile)
 	r.Delete("/{fileName}", controllers.DeleteFile)
 }
