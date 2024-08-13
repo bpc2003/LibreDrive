@@ -6,24 +6,32 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script src="https://unpkg.com/htmx.org@2.0.1" integrity="sha384-QWGpdj554B4ETpJJC9z+ZHJcA/i59TyjxEPXiiUgN2WmTyV5OEZWCD6gQhgkdpB/" crossorigin="anonymous"></script>
   </head>
-  <body>
-    <nav class="navbar navbar-expand-lg bg-primary-subtle pb-3 pt-3 mb-1" hx-get="/nav" hx-trigger="load" hx-swap="innerHTML"></nav>
+  <body style='background-image: url("https://www.transparenttextures.com/patterns/bright-squares.png");'>
+    <nav class="navbar navbar-expand-lg bg-primary pb-3 pt-3" data-bs-theme="dark" hx-get="/nav" hx-trigger="load" hx-swap="innerHTML"></nav>
     
-    <button class="btn btn-primary" style="border-radius:50%;" data-bs-toggle="modal" data-bs-target="#upload">+</button>
+    <button class="btn btn-primary" style="border-radius:50%;width:4rem;height:4rem;bottom:1rem;right:1rem;position:fixed;" data-bs-toggle="modal" data-bs-target="#upload">
+      <i class="bi bi-upload" style="font-size:2rem;"></i>
+    </button>
 
     <div class="modal fade" tabindex="-1" id="upload">
       <div class="modal-dialog">
         <div class="modal-content">
-          <form hx-encoding="multipart/form-data" hx-post="/api/files">
-            <input type="file" name="upload" class="form-control mb-1">
-            <button class="btn btn-outline-dark" data-bs-dismiss="modal">Upload</button>
-          </form>
+          <div class="modal-header">
+            <h5 class="modal-title">Upload a file</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form hx-encoding="multipart/form-data" hx-post="/api/files">
+              <input type="file" name="upload" class="form-control mb-1">
+              <button class="btn btn-outline-dark">Upload</button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
     
-    <h1>Files</h1>
-    <div hx-get="/api/files" hx-trigger="load" hx-swap="innerHTML"></div>
+    <h1 class="bg-primary-subtle mb-0">Files</h1>
+    <table class="table table-primary table-striped table-hover" hx-get="/api/files" hx-trigger="load" hx-swap="innerHTML"></table>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
   </body>
 </html>

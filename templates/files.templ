@@ -3,13 +3,21 @@ package templates
 import "fmt"
 
 templ Files(files []string) {
-  <ul>
+    <tbody>
     for _, file := range files {
-      <li>
-        { file } - 
-        <a href={ templ.URL(fmt.Sprintf("/api/files/%s", file)) }><i class="bi bi-download"></i></a> - 
-        <a hx-delete={ fmt.Sprintf("/api/files/%s", file) } hx-confirm={ fmt.Sprintf("Are you sure you want to delete %s", file) }><i class="bi bi-trash"></i></a>
-      </li>
+        <tr>
+        <td>{ file }</td>
+        <td>
+          <a href={ templ.URL(fmt.Sprintf("/api/files/%s", file)) }>
+            <i class="bi bi-download"></i>
+          </a>
+        </td>
+        <td>
+          <a hx-delete={ fmt.Sprintf("/api/files/%s", file) } hx-confirm={ fmt.Sprintf("Are you sure you want to delete %s", file) }>
+            <i class="bi bi-trash"></i>
+          </a>
+        </td>
+        </tr>
     }
-  </ul>
+    </tbody>
 }
