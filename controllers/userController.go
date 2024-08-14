@@ -68,7 +68,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, fmt.Sprintf("No User with ID of %d", userId), http.StatusNotFound)
 	} else {
-		w.WriteHeader(http.StatusNoContent)
 		os.RemoveAll(path.Join("user_data", strconv.Itoa(userId)))
+		w.Header().Set("HX-Refresh", "true")
 	}
 }

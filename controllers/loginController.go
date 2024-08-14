@@ -16,15 +16,14 @@ import (
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	userParams := models.CreateUserParams{}
 	r.ParseForm()
-	isAdmin, err := strconv.ParseBool(r.Form.Get("IsAdmin"))
 	if r.Form.Get("Username") == "" || r.Form.Get("Password") == "" ||
-		len(r.Form.Get("Password")) > 72 || err != nil {
+		len(r.Form.Get("Password")) > 72 {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
 
 	userParams.Username = r.Form.Get("Username")
-	userParams.Isadmin = isAdmin
+	userParams.Isadmin = r.Form.Get("IsAdmin") == "on"
 	password, _ := bcrypt.GenerateFromPassword([]byte(r.Form.Get("Password")), 14)
 	userParams.Password = string(password)
 
@@ -32,7 +31,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 	} else {
 		os.MkdirAll(path.Join("user_data", strconv.Itoa(int(user.ID))), 0750)
-		w.Write([]byte("Successfully created user"))
+		w.Header().Set("HX-Redirect", "/")
 	}
 }
 

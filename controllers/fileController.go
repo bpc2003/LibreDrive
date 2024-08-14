@@ -56,7 +56,6 @@ func GetFile(w http.ResponseWriter, r *http.Request) {
 	fileName := chi.URLParam(r, "fileName")
 	id := r.Context().Value("id").(int)
 	key, _ := nacl.Load(r.Context().Value("key").(string))
-
 	fp, err := os.Open(path.Join("user_data", strconv.Itoa(id), fileName+".enc"))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("File '%s' doesn't exist", fileName), http.StatusNotFound)
