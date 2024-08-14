@@ -20,6 +20,7 @@ func Auth(next http.Handler) http.Handler {
 
 		initContext := context.WithValue(r.Context(), "id", id)
 		initContext = context.WithValue(initContext, "isAdmin", isAdmin)
+		initContext = context.WithValue(initContext, "key", attrs[2])
 		next.ServeHTTP(w, r.WithContext(initContext))
 	})
 }

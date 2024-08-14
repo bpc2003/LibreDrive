@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"crypto/sha256"
 	"fmt"
 	"io"
 	"log"
@@ -20,7 +19,7 @@ import (
 func GetFiles(w http.ResponseWriter, r *http.Request) {
 	id := r.Context().Value("id").(int)
 
-	if files, err := os.ReadDir(path.Join("users", strconv.Itoa(id))); err != nil {
+	if files, err := os.ReadDir(path.Join("user_data", strconv.Itoa(id))); err != nil {
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 	} else {
 		fileNames := make([]string, 0)
@@ -42,12 +41,11 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	user, _ := types.Queries.GetUserById(types.CTX, int64(id))
-	key, _ := nacl.Load(fmt.Sprintf("%x", sha256.Sum256([]byte(user.Password))))
+	key, _ := nacl.Load(r.Context().Value("key").(string))
 	buf, _ := io.ReadAll(file)
 
 	encrypted := secretbox.EasySeal(buf, key)
-	if err = os.WriteFile(path.Join("users", strconv.Itoa(id), handler.Filename+".enc"), encrypted, 0750); err != nil {
+	if err = os.WriteFile(path.Join("user_data", strconv.Itoa(id), handler.Filename+".enc"), encrypted, 0640); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	} else {
 		w.Header().Set("HX-Refresh", "true")
@@ -57,10 +55,9 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 func GetFile(w http.ResponseWriter, r *http.Request) {
 	fileName := chi.URLParam(r, "fileName")
 	id := r.Context().Value("id").(int)
-	user, _ := types.Queries.GetUserById(types.CTX, int64(id))
-	key, _ := nacl.Load(fmt.Sprintf("%x", sha256.Sum256([]byte(user.Password))))
+	key, _ := nacl.Load(r.Context().Value("key").(string))
 
-	fp, err := os.Open(path.Join("users", strconv.Itoa(id), fileName+".enc"))
+	fp, err := os.Open(path.Join("user_data", strconv.Itoa(id), fileName+".enc"))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("File '%s' doesn't exist", fileName), http.StatusNotFound)
 		return
@@ -71,13 +68,13 @@ func GetFile(w http.ResponseWriter, r *http.Request) {
 	if buf, err = secretbox.EasyOpen(buf, key); err != nil {
 		log.Fatal(err)
 	} else {
-		fp, _ = os.Create(path.Join("users", strconv.Itoa(id), fileName))
+		fp, _ = os.Create(path.Join("user_data", strconv.Itoa(id), fileName))
 		fp.Write(buf)
 		fp.Close()
 
 		w.Header().Set("Content-Type", "application/octet-stream")
-		http.ServeFile(w, r, path.Join("users", strconv.Itoa(id), fileName))
-		os.Remove(path.Join("users", strconv.Itoa(id), fileName))
+		http.ServeFile(w, r, path.Join("user_data", strconv.Itoa(id), fileName))
+		os.Remove(path.Join("user_data", strconv.Itoa(id), fileName))
 	}
 }
 
@@ -85,7 +82,7 @@ func DeleteFile(w http.ResponseWriter, r *http.Request) {
 	fileName := chi.URLParam(r, "fileName")
 	id := r.Context().Value("id").(int)
 
-	if err := os.Remove(path.Join("users", strconv.Itoa(id), fileName+".enc")); err != nil {
+	if err := os.Remove(path.Join("user_data", strconv.Itoa(id), fileName+".enc")); err != nil {
 		http.Error(w, fmt.Sprintf("File '%s' doesn't exist", fileName), http.StatusNotFound)
 	} else {
 		w.Header().Set("HX-Refresh", "true")

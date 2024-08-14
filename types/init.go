@@ -6,6 +6,7 @@ import (
 	_ "embed"
 	"log"
 	"os"
+	"path"
 
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
@@ -37,7 +38,7 @@ func init() {
 	if u, _ := Queries.GetUsers(CTX); len(u) == 0 {
 		password, _ := bcrypt.GenerateFromPassword([]byte(os.Getenv("ADMIN_PASSWORD")), 14)
 		_, err = Queries.CreateUser(CTX, models.CreateUserParams{Username: "admin", Password: string(password), Isadmin: true})
-		if err != nil || os.MkdirAll("users/1", 0750) != nil {
+		if err != nil || os.MkdirAll(path.Join("user_data", "1"), 0750) != nil {
 			log.Fatal(err)
 		}
 	}

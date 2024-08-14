@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"net/http"
 	"os"
@@ -30,7 +31,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	if user, err := types.Queries.CreateUser(types.CTX, userParams); err != nil {
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 	} else {
-		os.MkdirAll(path.Join("users", strconv.Itoa(int(user.ID))), 0750)
+		os.MkdirAll(path.Join("user_data", strconv.Itoa(int(user.ID))), 0750)
 		w.Write([]byte("Successfully created user"))
 	}
 }
@@ -48,7 +49,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	}
 	c := http.Cookie{
 		Name:   "auth",
-		Value:  fmt.Sprintf("%d&%t", user.ID, user.Isadmin),
+		Value:  fmt.Sprintf("%d&%t&%x", user.ID, user.Isadmin, sha256.Sum256([]byte(Password))),
 		MaxAge: 1800,
 		Path:   "/",
 	}

@@ -44,14 +44,14 @@ func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if nu, err := types.Queries.ChangePassword(types.CTX, passwordParams); err != nil {
+	if _, err := types.Queries.ChangePassword(types.CTX, passwordParams); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	} else {
-		key, _ := nacl.Load(fmt.Sprintf("%x", sha256.Sum256([]byte(user.Password))))
-		nk, _ := nacl.Load(fmt.Sprintf("%x", sha256.Sum256([]byte(nu.Password))))
-		files, _ := os.ReadDir(path.Join("users", strconv.Itoa(userId)))
+		key, _ := nacl.Load(r.Context().Value("key").(string))
+		nk, _ := nacl.Load(fmt.Sprintf("%x", sha256.Sum256([]byte(passwordParams.Password))))
+		files, _ := os.ReadDir(path.Join("user_data", strconv.Itoa(userId)))
 		for _, file := range files {
-			f, _ := os.OpenFile(path.Join("users", strconv.Itoa(userId), file.Name()), os.O_RDWR, 0750)
+			f, _ := os.OpenFile(path.Join("user_data", strconv.Itoa(userId), file.Name()), os.O_RDWR, 0640)
 			buf, _ := io.ReadAll(f)
 			plain, _ := secretbox.EasyOpen(buf, key)
 			cipher := secretbox.EasySeal(plain, nk)
@@ -74,6 +74,6 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("No User with ID of %d", userId), http.StatusNotFound)
 	} else {
 		w.WriteHeader(http.StatusNoContent)
-		os.RemoveAll(fmt.Sprintf("users/%d", userId))
+		os.RemoveAll(path.Join("user_data", strconv.Itoa(userId)))
 	}
 }

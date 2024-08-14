@@ -1,5 +1,5 @@
 users.db
 .env
-users/
+user_data/
 models/
 templates/*_templ.go
