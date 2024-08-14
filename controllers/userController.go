@@ -38,11 +38,6 @@ func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 	password, _ := bcrypt.GenerateFromPassword([]byte(r.Form.Get("Password")), 14)
 	passwordParams.Password = string(password)
 	passwordParams.ID = int64(userId)
-	user, err := types.Queries.GetUserById(types.CTX, passwordParams.ID)
-	if err != nil {
-		http.Error(w, fmt.Sprintf("No user with ID of %d", passwordParams.ID), http.StatusNotFound)
-		return
-	}
 
 	if _, err := types.Queries.ChangePassword(types.CTX, passwordParams); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
