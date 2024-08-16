@@ -7,6 +7,10 @@ import (
 )
 
 templ Users(users []models.User) {
+  <thead>
+    <h1 class="mb-0 mt-0" style="display:inline;">Users</h1>
+    <button data-bs-toggle="modal" data-bs-target="#create-user" class="btn btn-primary mt-1" style="display:inline;right:1rem;position:fixed;">+</button>
+  </thead>
   <tbody>
     for _, user := range users {
       <tr>

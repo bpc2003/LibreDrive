@@ -8,8 +8,9 @@ import (
 )
 
 func Nav(w http.ResponseWriter, r *http.Request) {
+	id := r.Context().Value("id").(int)
 	isAdmin := r.Context().Value("isAdmin").(bool)
 
-	nav := templates.Nav(isAdmin)
+	nav := templates.Nav(id, isAdmin)
 	nav.Render(context.Background(), w)
 }

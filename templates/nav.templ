@@ -1,6 +1,10 @@
 package templates
 
-templ Nav(isAdmin bool) {
+import (
+  "fmt"
+)
+
+templ Nav(id int, isAdmin bool) {
   <div class="container-fluid">
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -8,14 +12,35 @@ templ Nav(isAdmin bool) {
     <div class="collapse navbar-collapse" id="nav">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link" href="/">Files</a>
+          <a class="nav-link" hx-get="/api/files" hx-target="#c-table">Files</a>
         </li>
         if isAdmin {
           <li class="nav-item">
-            <a class="nav-link" href="/users/">Users</a>
+            <a class="nav-link" hx-get="/api/users" hx-target="#c-table">Users</a>
           </li>
         }
+        <li class="nav-item" data-bs-toggle="modal" data-bs-target="#change-password">
+            <p class="nav-link">
+              Change Password
+            </p>
+        </li>
       </ul>
+    </div>
+    <div class="modal fade" tabindex="-1" id="change-password" data-bs-theme="light">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Change Password</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form hx-put={ fmt.Sprintf("/api/users/%d", id) } hx-confirm="Are you sure you want to change your password?">
+              <input type="password" name="Password" class="form-control mb-3">
+              <button class="btn btn-outline-dark">Change Password</button>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 }

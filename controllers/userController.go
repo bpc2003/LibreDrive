@@ -53,6 +53,15 @@ func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 			f.Seek(0, 0)
 			f.Write(cipher)
 			f.Close()
+
+			c := http.Cookie{
+				Name:   "auth",
+				Value:  "",
+				Path:   "/",
+				MaxAge: -1,
+			}
+			http.SetCookie(w, &c)
+			w.Header().Set("HX-Refresh", "true")
 		}
 	}
 }
