@@ -26,7 +26,6 @@ func main() {
 
 	r.Handle("/", fs)
 	r.Handle("/login/", fs)
-	r.Handle("/users/", fs)
 	r.Route("/api/files", routers.FileRoutes)
 	r.Route("/api/users", routers.GroupRoutes)
 	r.Route("/api/users/{userId}", routers.IndividualRoutes)

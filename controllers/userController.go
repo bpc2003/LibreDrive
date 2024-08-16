@@ -43,7 +43,7 @@ func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	} else {
 		key, _ := nacl.Load(r.Context().Value("key").(string))
-		nk, _ := nacl.Load(fmt.Sprintf("%x", sha256.Sum256([]byte(passwordParams.Password))))
+		nk, _ := nacl.Load(fmt.Sprintf("%x", sha256.Sum256([]byte(r.Form.Get("Password")))))
 		files, _ := os.ReadDir(path.Join("user_data", strconv.Itoa(userId)))
 		for _, file := range files {
 			f, _ := os.OpenFile(path.Join("user_data", strconv.Itoa(userId), file.Name()), os.O_RDWR, 0640)
