@@ -13,8 +13,3 @@ require (
 )
 
 require github.com/a-h/templ v0.2.747
-
-require (
-	github.com/kevinburke/nacl v0.0.0-20210405173606-cd9060f5f776
-	golang.org/x/sys v0.22.0 // indirect
-)

@@ -10,9 +10,8 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/kevinburke/nacl"
-	"github.com/kevinburke/nacl/secretbox"
 	"golang.org/x/crypto/bcrypt"
+	"libredrive/crypto"
 	"libredrive/models"
 	"libredrive/templates"
 	"libredrive/types"
@@ -42,14 +41,14 @@ func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 	if _, err := types.Queries.ChangePassword(types.CTX, passwordParams); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	} else {
-		key, _ := nacl.Load(r.Context().Value("key").(string))
-		nk, _ := nacl.Load(fmt.Sprintf("%x", sha256.Sum256([]byte(r.Form.Get("Password")))))
+		key := r.Context().Value("key").(string)
+		nk := fmt.Sprintf("%x", sha256.Sum256([]byte(r.Form.Get("Password"))))
 		files, _ := os.ReadDir(path.Join("user_data", strconv.Itoa(userId)))
 		for _, file := range files {
 			f, _ := os.OpenFile(path.Join("user_data", strconv.Itoa(userId), file.Name()), os.O_RDWR, 0640)
 			buf, _ := io.ReadAll(f)
-			plain, _ := secretbox.EasyOpen(buf, key)
-			cipher := secretbox.EasySeal(plain, nk)
+			plain, _ := crypto.Decrypt([]byte(key), buf)
+			cipher := crypto.Encrypt([]byte(nk), plain)
 			f.Seek(0, 0)
 			f.Write(cipher)
 			f.Close()
