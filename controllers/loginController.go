@@ -14,6 +14,10 @@ import (
 )
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
+	if !r.Context().Value("isAdmin").(bool) {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 	userParams := models.CreateUserParams{}
 	r.ParseForm()
 	if r.Form.Get("Username") == "" || r.Form.Get("Password") == "" ||

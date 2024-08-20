@@ -8,13 +8,12 @@ import (
 
 func GroupRoutes(r chi.Router) {
 	r.Use(customMiddleware.Auth)
-	r.Use(customMiddleware.IsAuth)
 	r.Get("/", controllers.GetUsers)
 }
 
 func IndividualRoutes(r chi.Router) {
 	r.Use(customMiddleware.Auth)
-	r.Use(customMiddleware.IsAuth)
 	r.Put("/", controllers.ChangeUserPassword)
 	r.Delete("/", controllers.DeleteUser)
+	r.Put("/reset", controllers.ResetUserPassword)
 }

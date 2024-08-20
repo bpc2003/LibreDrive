@@ -18,6 +18,10 @@ import (
 )
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
+	if !r.Context().Value("isAdmin").(bool) {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 	users, err := types.Queries.GetUsers(types.CTX)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -34,6 +38,10 @@ func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
+	if r.Context().Value("id").(int) != userId {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 	password, _ := bcrypt.GenerateFromPassword([]byte(r.Form.Get("Password")), 14)
 	passwordParams.Password = string(password)
 	passwordParams.ID = int64(userId)
@@ -43,9 +51,9 @@ func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 	} else {
 		key := r.Context().Value("key").(string)
 		nk := fmt.Sprintf("%x", sha256.Sum256([]byte(r.Form.Get("Password"))))
-		files, _ := os.ReadDir(path.Join("user_data", strconv.Itoa(userId)))
+		files, _ := os.ReadDir(path.Join("users", strconv.Itoa(userId)))
 		for _, file := range files {
-			f, _ := os.OpenFile(path.Join("user_data", strconv.Itoa(userId), file.Name()), os.O_RDWR, 0640)
+			f, _ := os.OpenFile(path.Join("users", strconv.Itoa(userId), file.Name()), os.O_RDWR, 0640)
 			buf, _ := io.ReadAll(f)
 			plain, _ := crypto.Decrypt([]byte(key), buf)
 			cipher := crypto.Encrypt([]byte(nk), plain)
@@ -65,6 +73,31 @@ func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func ResetUserPassword(w http.ResponseWriter, r *http.Request) {
+	if !r.Context().Value("isAdmin").(bool) {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+	passwordParams := models.ChangePasswordParams{}
+	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
+	r.ParseForm()
+	if err != nil || r.Form.Get("Password") == "" || len(r.Form.Get("Password")) > 72 {
+		http.Error(w, "Bad Request", http.StatusBadRequest)
+		return
+	}
+	password, _ := bcrypt.GenerateFromPassword([]byte(r.Form.Get("Password")), 14)
+	passwordParams.Password = string(password)
+	passwordParams.ID = int64(userId)
+	if _, err := types.Queries.ChangePassword(types.CTX, passwordParams); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	} else {
+		files, _ := os.ReadDir(path.Join("users", strconv.Itoa(userId)))
+		for _, file := range files {
+			os.Remove(path.Join("users", strconv.Itoa(userId), file.Name()))
+		}
+	}
+}
+
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
 	if err != nil {
@@ -76,7 +109,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, fmt.Sprintf("No User with ID of %d", userId), http.StatusNotFound)
 	} else {
-		os.RemoveAll(path.Join("user_data", strconv.Itoa(userId)))
+		os.RemoveAll(path.Join("users", strconv.Itoa(userId)))
 		w.Header().Set("HX-Refresh", "true")
 	}
 }
