@@ -28,8 +28,7 @@ func main() {
 	r.Handle("/login/", fs)
 	r.Route("/nav", routers.NavRoute)
 	r.Route("/api/files", routers.FileRoutes)
-	r.Route("/api/users", routers.GroupRoutes)
-	r.Route("/api/users/{userId}", routers.IndividualRoutes)
+	r.Route("/api/users", routers.UserRoutes)
 	r.Route("/api/register", routers.RegisterRoute)
 	r.Post("/api/login", controllers.LoginUser)
 

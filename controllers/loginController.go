@@ -34,7 +34,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	if user, err := types.Queries.CreateUser(types.CTX, userParams); err != nil {
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 	} else {
-		os.MkdirAll(path.Join("user_data", strconv.Itoa(int(user.ID))), 0750)
+		os.MkdirAll(path.Join("users", strconv.Itoa(int(user.ID))), 0750)
 		w.Header().Set("HX-Redirect", "/")
 	}
 }

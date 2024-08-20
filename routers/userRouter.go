@@ -6,14 +6,10 @@ import (
 	"libredrive/customMiddleware"
 )
 
-func GroupRoutes(r chi.Router) {
+func UserRoutes(r chi.Router) {
 	r.Use(customMiddleware.Auth)
 	r.Get("/", controllers.GetUsers)
-}
-
-func IndividualRoutes(r chi.Router) {
-	r.Use(customMiddleware.Auth)
-	r.Put("/", controllers.ChangeUserPassword)
-	r.Delete("/", controllers.DeleteUser)
-	r.Put("/reset", controllers.ResetUserPassword)
+	r.Put("/{userId}", controllers.ChangeUserPassword)
+	r.Delete("/{userId}", controllers.DeleteUser)
+	r.Put("/{userId}/reset", controllers.ResetUserPassword)
 }

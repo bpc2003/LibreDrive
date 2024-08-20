@@ -95,6 +95,7 @@ func ResetUserPassword(w http.ResponseWriter, r *http.Request) {
 		for _, file := range files {
 			os.Remove(path.Join("users", strconv.Itoa(userId), file.Name()))
 		}
+		w.Header().Set("HX-Refresh", "true")
 	}
 }
 
