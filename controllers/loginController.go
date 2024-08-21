@@ -8,7 +8,7 @@ import (
 	"path"
 	"strconv"
 
-	"golang.org/x/crypto/bcrypt"
+	"libredrive/crypto"
 	"libredrive/models"
 	"libredrive/types"
 )
@@ -28,8 +28,9 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	userParams.Username = r.Form.Get("Username")
 	userParams.Isadmin = r.Form.Get("IsAdmin") == "on"
-	password, _ := bcrypt.GenerateFromPassword([]byte(r.Form.Get("Password")), 14)
-	userParams.Password = string(password)
+	password, salt := crypto.GeneratePassword(r.Form.Get("Password"), 14)
+	userParams.Password = password
+	userParams.Salt = salt
 
 	if user, err := types.Queries.CreateUser(types.CTX, userParams); err != nil {
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
@@ -46,13 +47,13 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := types.Queries.GetUser(types.CTX, Username)
 	if err != nil ||
-		bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(Password)) != nil {
+		crypto.ComparePassword(Password, user.Salt, user.Password) == false {
 		http.Error(w, "Incorrect Username or Password", http.StatusForbidden)
 		return
 	}
 	c := http.Cookie{
 		Name:   "auth",
-		Value:  fmt.Sprintf("%d&%t&%x", user.ID, user.Isadmin, sha256.Sum256([]byte(Password))),
+		Value:  fmt.Sprintf("%d&%t&%x", user.ID, user.Isadmin, sha256.Sum256([]byte(user.Salt + Password))),
 		MaxAge: 1800,
 		Path:   "/",
 	}

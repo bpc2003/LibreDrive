@@ -10,7 +10,7 @@ import (
 
 	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
-	"golang.org/x/crypto/bcrypt"
+	"libredrive/crypto"
 	"libredrive/models"
 )
 
@@ -36,8 +36,8 @@ func init() {
 		log.Fatal(err)
 	}
 	if u, _ := Queries.GetUsers(CTX); len(u) == 0 {
-		password, _ := bcrypt.GenerateFromPassword([]byte(os.Getenv("ADMIN_PASSWORD")), 14)
-		_, err = Queries.CreateUser(CTX, models.CreateUserParams{Username: "admin", Password: string(password), Isadmin: true})
+		password, salt := crypto.GeneratePassword(os.Getenv("ADMIN_PASSWORD"), 14)
+		_, err = Queries.CreateUser(CTX, models.CreateUserParams{Username: "admin", Password: string(password), Salt: salt, Isadmin: true})
 		if err != nil || os.MkdirAll(path.Join("users", "1"), 0750) != nil {
 			log.Fatal(err)
 		}

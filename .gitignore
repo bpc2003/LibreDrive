@@ -3,3 +3,4 @@ users.db
 users/
 models/
 templates/*_templ.go
+todo

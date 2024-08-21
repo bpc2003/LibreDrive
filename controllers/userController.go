@@ -10,7 +10,6 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"golang.org/x/crypto/bcrypt"
 	"libredrive/crypto"
 	"libredrive/models"
 	"libredrive/templates"
@@ -42,8 +41,9 @@ func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
-	password, _ := bcrypt.GenerateFromPassword([]byte(r.Form.Get("Password")), 14)
-	passwordParams.Password = string(password)
+	password, salt := crypto.GeneratePassword(r.Form.Get("Password"), 14)
+	passwordParams.Password = password
+	passwordParams.Salt = salt
 	passwordParams.ID = int64(userId)
 
 	if _, err := types.Queries.ChangePassword(types.CTX, passwordParams); err != nil {
@@ -85,8 +85,9 @@ func ResetUserPassword(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
-	password, _ := bcrypt.GenerateFromPassword([]byte(r.Form.Get("Password")), 14)
-	passwordParams.Password = string(password)
+	password, salt := crypto.GeneratePassword(r.Form.Get("Password"), 14)
+	passwordParams.Password = password
+	passwordParams.Salt = salt
 	passwordParams.ID = int64(userId)
 	if _, err := types.Queries.ChangePassword(types.CTX, passwordParams); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

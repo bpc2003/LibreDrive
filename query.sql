@@ -8,8 +8,10 @@ SELECT * FROM Users WHERE username = ?;
 INSERT INTO Users (
   username,
   password,
+  salt,
   isAdmin
 ) VALUES (
+  ?,
   ?,
   ?,
   ?
@@ -23,4 +25,4 @@ DELETE From Users WHERE id = ?;
 SELECT * FROM Users WHERE id = ?;
 
 -- name: ChangePassword :one
-UPDATE Users SET password = ? WHERE id = ? RETURNING *;
+UPDATE Users SET password = ?, salt = ? WHERE id = ? RETURNING *;
