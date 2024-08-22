@@ -28,7 +28,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	userParams.Username = r.Form.Get("Username")
 	userParams.Isadmin = r.Form.Get("IsAdmin") == "on"
-	password, salt := crypto.GeneratePassword(r.Form.Get("Password"), 14)
+	password, salt := crypto.GeneratePassword(r.Form.Get("Password"), 144)
 	userParams.Password = password
 	userParams.Salt = salt
 
@@ -36,7 +36,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 	} else {
 		os.MkdirAll(path.Join("users", strconv.Itoa(int(user.ID))), 0750)
-		w.Header().Set("HX-Redirect", "/")
+		w.Header().Set("HX-Refresh", "true")
 	}
 }
 

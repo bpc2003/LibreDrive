@@ -36,7 +36,7 @@ func init() {
 		log.Fatal(err)
 	}
 	if u, _ := Queries.GetUsers(CTX); len(u) == 0 {
-		password, salt := crypto.GeneratePassword(os.Getenv("ADMIN_PASSWORD"), 14)
+		password, salt := crypto.GeneratePassword(os.Getenv("ADMIN_PASSWORD"), 144)
 		_, err = Queries.CreateUser(CTX, models.CreateUserParams{Username: "admin", Password: string(password), Salt: salt, Isadmin: true})
 		if err != nil || os.MkdirAll(path.Join("users", "1"), 0750) != nil {
 			log.Fatal(err)
