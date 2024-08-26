@@ -1,9 +1,11 @@
 package controllers
 
 import (
+	"archive/zip"
 	"crypto/sha256"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -93,7 +95,14 @@ func ResetUserPassword(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	} else {
 		files, _ := os.ReadDir(path.Join("users", strconv.Itoa(userId)))
+		lost, _ := os.Create(path.Join("users", strconv.Itoa(userId), "lost.zip"))
+		zw := zip.NewWriter(lost)
 		for _, file := range files {
+			f, _ := os.Open(path.Join("users", strconv.Itoa(userId), file.Name()))
+			w, _ := zw.Create(file.Name())
+			if _, err := io.Copy(w, f); err != nil {
+				log.Fatal(err)
+			}
 			os.Remove(path.Join("users", strconv.Itoa(userId), file.Name()))
 		}
 		w.Header().Set("HX-Refresh", "true")

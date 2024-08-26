@@ -23,7 +23,7 @@ func GetFiles(w http.ResponseWriter, r *http.Request) {
 	} else {
 		fileNames := make([]string, 0)
 		for _, f := range files {
-			fileNames = append(fileNames, f.Name()[:len(f.Name())-4])
+			fileNames = append(fileNames, f.Name())
 		}
 		templates.Files(fileNames).Render(types.CTX, w)
 	}
@@ -44,7 +44,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	buf, _ := io.ReadAll(file)
 
 	encrypted := crypto.Encrypt([]byte(key), buf)
-	if err = os.WriteFile(path.Join("users", strconv.Itoa(id), handler.Filename+".aes"), encrypted, 0640); err != nil {
+	if err = os.WriteFile(path.Join("users", strconv.Itoa(id), handler.Filename), encrypted, 0640); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	} else {
 		w.Header().Set("HX-Refresh", "true")
@@ -55,7 +55,7 @@ func GetFile(w http.ResponseWriter, r *http.Request) {
 	fileName := chi.URLParam(r, "fileName")
 	id := r.Context().Value("id").(int)
 	key := r.Context().Value("key").(string)
-	fp, err := os.Open(path.Join("users", strconv.Itoa(id), fileName+".aes"))
+	fp, err := os.Open(path.Join("users", strconv.Itoa(id), fileName))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("File '%s' doesn't exist", fileName), http.StatusNotFound)
 		return
@@ -63,17 +63,13 @@ func GetFile(w http.ResponseWriter, r *http.Request) {
 	defer fp.Close()
 	buf, _ := io.ReadAll(fp)
 
-	if buf, err = crypto.Decrypt([]byte(key), buf); err != nil {
-		log.Fatal(err)
-	} else {
-		fp, _ = os.Create(path.Join("users", strconv.Itoa(id), fileName))
-		fp.Write(buf)
-		fp.Close()
-
-		w.Header().Set("Content-Type", "application/octet-stream")
-		http.ServeFile(w, r, path.Join("users", strconv.Itoa(id), fileName))
-		os.Remove(path.Join("users", strconv.Itoa(id), fileName))
+	if fileName != "lost.zip" {
+		if buf, err = crypto.Decrypt([]byte(key), buf); err != nil {
+			log.Fatal(err)
+		}
 	}
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Write(buf)
 }
 
 func DeleteFile(w http.ResponseWriter, r *http.Request) {
