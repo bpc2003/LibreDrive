@@ -76,7 +76,7 @@ func DeleteFile(w http.ResponseWriter, r *http.Request) {
 	fileName := chi.URLParam(r, "fileName")
 	id := r.Context().Value("id").(int)
 
-	if err := os.Remove(path.Join("users", strconv.Itoa(id), fileName+".aes")); err != nil {
+	if err := os.Remove(path.Join("users", strconv.Itoa(id), fileName)); err != nil {
 		http.Error(w, fmt.Sprintf("File '%s' doesn't exist", fileName), http.StatusNotFound)
 	} else {
 		w.Header().Set("HX-Refresh", "true")
