@@ -103,8 +103,10 @@ func ResetUserPassword(w http.ResponseWriter, r *http.Request) {
 			if _, err := io.Copy(w, f); err != nil {
 				log.Fatal(err)
 			}
+			f.Close()
 			os.Remove(path.Join("users", strconv.Itoa(userId), file.Name()))
 		}
+		zw.Close()
 		w.Header().Set("HX-Refresh", "true")
 	}
 }

@@ -36,7 +36,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 	} else {
 		os.MkdirAll(path.Join("users", strconv.Itoa(int(user.ID))), 0750)
-		w.Header().Set("HX-Refresh", "true")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
 }
 
@@ -51,9 +51,15 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Incorrect Username or Password", http.StatusForbidden)
 		return
 	}
+	var h [sha256.Size]byte
+	for _, r := range user.Salt {
+		h = sha256.Sum256([]byte(string(r) + Password))
+		Password = string(h[:])
+	}
+	h = sha256.Sum256([]byte(Password + user.Salt))
 	c := http.Cookie{
 		Name:   "auth",
-		Value:  fmt.Sprintf("%d&%t&%x", user.ID, user.Isadmin, sha256.Sum256([]byte(user.Salt + Password))),
+		Value:  fmt.Sprintf("%d&%t&%x", user.ID, user.Isadmin, h),
 		MaxAge: 1800,
 		Path:   "/",
 	}
