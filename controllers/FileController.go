@@ -12,7 +12,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"libredrive/crypto"
 	"libredrive/templates"
-	"libredrive/types"
 )
 
 func GetFiles(w http.ResponseWriter, r *http.Request) {
@@ -25,7 +24,7 @@ func GetFiles(w http.ResponseWriter, r *http.Request) {
 		for _, f := range files {
 			fileNames = append(fileNames, f.Name())
 		}
-		templates.Files(fileNames).Render(types.CTX, w)
+		templates.Files(fileNames).Render(ctx, w)
 	}
 }
 

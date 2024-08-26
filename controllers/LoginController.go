@@ -10,7 +10,6 @@ import (
 
 	"libredrive/crypto"
 	"libredrive/models"
-	"libredrive/types"
 )
 
 func CreateUser(w http.ResponseWriter, r *http.Request) {
@@ -32,7 +31,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	userParams.Password = password
 	userParams.Salt = salt
 
-	if user, err := types.Queries.CreateUser(types.CTX, userParams); err != nil {
+	if user, err := q.CreateUser(ctx, userParams); err != nil {
 		http.Error(w, "Internal Error", http.StatusInternalServerError)
 	} else {
 		os.MkdirAll(path.Join("users", strconv.Itoa(int(user.ID))), 0750)
@@ -45,7 +44,7 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 	Username := r.Form.Get("Username")
 	Password := r.Form.Get("Password")
 
-	user, err := types.Queries.GetUser(types.CTX, Username)
+	user, err := q.GetUser(ctx, Username)
 	if err != nil ||
 		crypto.ComparePassword(Password, user.Salt, user.Password) == false {
 		http.Error(w, "Incorrect Username or Password", http.StatusForbidden)

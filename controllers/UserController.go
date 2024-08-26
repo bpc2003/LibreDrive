@@ -15,7 +15,6 @@ import (
 	"libredrive/crypto"
 	"libredrive/models"
 	"libredrive/templates"
-	"libredrive/types"
 )
 
 func GetUsers(w http.ResponseWriter, r *http.Request) {
@@ -23,11 +22,11 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
-	users, err := types.Queries.GetUsers(types.CTX)
+	users, err := q.GetUsers(ctx)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	} else {
-		templates.Users(users).Render(types.CTX, w)
+		templates.Users(users).Render(ctx, w)
 	}
 }
 
@@ -48,7 +47,7 @@ func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 	passwordParams.Salt = salt
 	passwordParams.ID = int64(userId)
 
-	if _, err := types.Queries.ChangePassword(types.CTX, passwordParams); err != nil {
+	if _, err := q.ChangePassword(ctx, passwordParams); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	} else {
 		key := r.Context().Value("key").(string)
@@ -91,7 +90,7 @@ func ResetUserPassword(w http.ResponseWriter, r *http.Request) {
 	passwordParams.Password = password
 	passwordParams.Salt = salt
 	passwordParams.ID = int64(userId)
-	if _, err := types.Queries.ChangePassword(types.CTX, passwordParams); err != nil {
+	if _, err := q.ChangePassword(ctx, passwordParams); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	} else {
 		files, _ := os.ReadDir(path.Join("users", strconv.Itoa(userId)))
@@ -118,7 +117,7 @@ func DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = types.Queries.DeleteUser(types.CTX, int64(userId))
+	err = q.DeleteUser(ctx, int64(userId))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("No User with ID of %d", userId), http.StatusNotFound)
 	} else {
