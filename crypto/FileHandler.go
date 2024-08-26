@@ -3,8 +3,11 @@ package crypto
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"io"
 	"log"
 )
@@ -25,6 +28,9 @@ func Encrypt(key, buf []byte) (ciphertext []byte) {
 	stream := cipher.NewCFBEncrypter(block, iv)
 	stream.XORKeyStream(ciphertext[aes.BlockSize:], buf)
 
+	h := hmac.New(sha256.New, key)
+	h.Write(buf)
+	ciphertext = append(ciphertext, h.Sum(nil)...)
 	return
 }
 
@@ -36,10 +42,17 @@ func Decrypt(key, buf []byte) ([]byte, error) {
 	}
 
 	iv := buf[:aes.BlockSize]
-	ciphertext := buf[aes.BlockSize:]
+	ciphertext := buf[aes.BlockSize:len(buf)-sha256.Size]
 
 	stream := cipher.NewCFBDecrypter(block, iv)
 
 	stream.XORKeyStream(ciphertext, ciphertext)
-	return ciphertext, nil
+	h := hmac.New(sha256.New, key)
+	h.Write(ciphertext)
+	exp := buf[len(buf)-sha256.Size:]
+	if hmac.Equal(h.Sum(nil), exp) {
+		return ciphertext, nil
+	} else {
+		return nil, errors.New("Invalid key")
+	}
 }
