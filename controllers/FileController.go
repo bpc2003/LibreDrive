@@ -1,3 +1,4 @@
+// controllers - controllers for all the various routes
 package controllers
 
 import (
@@ -14,6 +15,7 @@ import (
 	"libredrive/templates"
 )
 
+// GetFiles - Gets a user's files.
 func GetFiles(w http.ResponseWriter, r *http.Request) {
 	id := r.Context().Value("id").(int)
 
@@ -28,6 +30,7 @@ func GetFiles(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// UploadFile - takes a user file encrypts it, and then stores it with the rest of their files.
 func UploadFile(w http.ResponseWriter, r *http.Request) {
 	id := r.Context().Value("id").(int)
 	r.ParseMultipartForm(10 << 20)
@@ -50,6 +53,7 @@ func UploadFile(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetFile - allows a user to download a file.
 func GetFile(w http.ResponseWriter, r *http.Request) {
 	fileName := chi.URLParam(r, "fileName")
 	id := r.Context().Value("id").(int)
@@ -71,6 +75,7 @@ func GetFile(w http.ResponseWriter, r *http.Request) {
 	w.Write(buf)
 }
 
+// DeleteFile - allows a user to delete a file.
 func DeleteFile(w http.ResponseWriter, r *http.Request) {
 	fileName := chi.URLParam(r, "fileName")
 	id := r.Context().Value("id").(int)

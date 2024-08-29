@@ -1,3 +1,4 @@
+// crypto - handles file encryption and password hashing
 package crypto
 
 import (
@@ -12,6 +13,7 @@ import (
 	"log"
 )
 
+// Encrypt - encrypts a buffer with a given key
 func Encrypt(key, buf []byte) (ciphertext []byte) {
 	key, _ = hex.DecodeString(string(key))
 	block, err := aes.NewCipher(key)
@@ -34,6 +36,7 @@ func Encrypt(key, buf []byte) (ciphertext []byte) {
 	return
 }
 
+// Decrypt - decrypts a buffer with a given key
 func Decrypt(key, buf []byte) ([]byte, error) {
 	key, _ = hex.DecodeString(string(key))
 	block, err := aes.NewCipher(key)
@@ -42,7 +45,7 @@ func Decrypt(key, buf []byte) ([]byte, error) {
 	}
 
 	iv := buf[:aes.BlockSize]
-	ciphertext := buf[aes.BlockSize:len(buf)-sha256.Size]
+	ciphertext := buf[aes.BlockSize : len(buf)-sha256.Size]
 
 	stream := cipher.NewCFBDecrypter(block, iv)
 

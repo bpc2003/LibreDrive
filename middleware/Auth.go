@@ -1,4 +1,5 @@
-package customMiddleware
+// middleware - middleware for handling private routes
+package middleware
 
 import (
 	"context"
@@ -7,6 +8,7 @@ import (
 	"strings"
 )
 
+// Auth - makes sure a user is logged in.
 func Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		auth, _ := r.Cookie("auth")

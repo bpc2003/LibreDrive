@@ -7,6 +7,7 @@ import (
 	"math/rand/v2"
 )
 
+// GeneratePassword - generates a password with a salt
 func GeneratePassword(password string, rounds int) (string, string) {
 	var salt string
 	for i := 0; i < rounds; i++ {
@@ -21,6 +22,7 @@ func GeneratePassword(password string, rounds int) (string, string) {
 	return password, salt
 }
 
+// ComparePassword - compares a password and salt with a hashed password
 func ComparePassword(password, salt, hashed string) bool {
 	var h [sha256.Size]byte
 	for _, r := range salt {

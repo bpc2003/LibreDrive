@@ -17,6 +17,7 @@ import (
 	"libredrive/templates"
 )
 
+// GetUsers - allows an admin user to see all the registered users.
 func GetUsers(w http.ResponseWriter, r *http.Request) {
 	if !r.Context().Value("isAdmin").(bool) {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -30,6 +31,7 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ChangeUserPassword - allows a user to change their password.
 func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 	passwordParams := models.ChangePasswordParams{}
 	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
@@ -74,6 +76,8 @@ func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ResetUserPassword - allows an admin user to reset another user's password.
+// NOTE: When ResetUserPassword is called all previously encrypted files are lost.
 func ResetUserPassword(w http.ResponseWriter, r *http.Request) {
 	if !r.Context().Value("isAdmin").(bool) {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -110,6 +114,7 @@ func ResetUserPassword(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// DeleteUser - allows an admin to delete a user.
 func DeleteUser(w http.ResponseWriter, r *http.Request) {
 	userId, err := strconv.Atoi(chi.URLParam(r, "userId"))
 	if err != nil {

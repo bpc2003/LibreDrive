@@ -12,6 +12,7 @@ import (
 	"libredrive/models"
 )
 
+// CreateUser - allows an admin to create a user.
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	if !r.Context().Value("isAdmin").(bool) {
 		http.Error(w, "Forbidden", http.StatusForbidden)
@@ -39,6 +40,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// LoginUser - allows a user to login to their account.
 func LoginUser(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 	Username := r.Form.Get("Username")
