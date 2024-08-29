@@ -4,6 +4,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -20,6 +21,7 @@ func init() {
 }
 
 func main() {
+	port := os.Getenv("PORT")
 	r := chi.NewRouter()
 	fs := http.FileServer(http.Dir("./public"))
 
@@ -33,6 +35,6 @@ func main() {
 	r.Route("/api/register", routers.RegisterRoute)
 	r.Post("/api/login", controllers.LoginUser)
 
-	log.Println("Server running on Port 8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	log.Println("Server running on Port " + port)
+	log.Fatal(http.ListenAndServe(":" + port, r))
 }
