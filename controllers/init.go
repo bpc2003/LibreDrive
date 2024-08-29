@@ -8,9 +8,9 @@ import (
 	"os"
 	"path"
 
-	"github.com/joho/godotenv"
 	_ "github.com/mattn/go-sqlite3"
 	"libredrive/crypto"
+	"libredrive/global"
 	"libredrive/models"
 )
 
@@ -32,11 +32,8 @@ func init() {
 	}
 	q = models.New(db)
 
-	if err = godotenv.Load(); err != nil {
-		log.Fatal(err)
-	}
 	if u, _ := q.GetUsers(ctx); len(u) == 0 {
-		password, salt := crypto.GeneratePassword(os.Getenv("ADMIN_PASSWORD"), 144)
+		password, salt := crypto.GeneratePassword(global.ADMIN_PASSWORD, 144)
 		_, err = q.CreateUser(ctx, models.CreateUserParams{Username: "admin", Password: string(password), Salt: salt, Isadmin: true})
 		if err != nil || os.MkdirAll(path.Join("users", "1"), 0750) != nil {
 			log.Fatal(err)

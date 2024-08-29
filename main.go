@@ -4,37 +4,27 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/joho/godotenv"
 	"libredrive/controllers"
+	"libredrive/global"
 	"libredrive/routers"
 )
 
-func init() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
 func main() {
-	port := os.Getenv("PORT")
 	r := chi.NewRouter()
 	fs := http.FileServer(http.Dir("./public"))
 
 	r.Use(middleware.Logger)
 
-	r.Handle("/", fs)
-	r.Handle("/login/", fs)
+	r.Handle("/*", fs)
 	r.Route("/nav", routers.NavRoute)
 	r.Route("/api/files", routers.FileRoutes)
 	r.Route("/api/users", routers.UserRoutes)
 	r.Route("/api/register", routers.RegisterRoute)
 	r.Post("/api/login", controllers.LoginUser)
 
-	log.Println("Server running on Port " + port)
-	log.Fatal(http.ListenAndServe(":" + port, r))
+	log.Println("Server running on Port " + global.PORT)
+	log.Fatal(http.ListenAndServe(":" + global.PORT, r))
 }
