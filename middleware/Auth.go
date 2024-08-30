@@ -13,7 +13,7 @@ func Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		auth, _ := r.Cookie("auth")
 		if auth == nil {
-			w.Header().Set("HX-Redirect", "/login/")
+			w.Header().Set("HX-Redirect", "/login.html")
 			return
 		}
 		attrs := strings.Split(auth.Value, "&")

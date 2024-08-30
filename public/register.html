@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Register</title>
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body style='background-image:url("/static/bright-squares.png")'>
+    <div class="container-fluid justify-content-center mt-5" style="display:grid;">
+      <h1>Register</h1>
+      <form action="/api/register" method="POST">
+        <div class="mb-3">
+          <label>Username:</label>
+          <input class="form-control" name="Username">
+        </div>
+        <div class="mb-3">
+          <label>Password:</label>
+          <input class="form-control" name="Password" type="password">
+        </div>
+        <input type="hidden" name="IsAdmin" value="off">
+        <input class="btn btn-primary mb-3" type="submit" value="Register">
+      </form>
+      <a href="/login.html">Login</a>
+    </div>
+  </body>
+</html>
+

@@ -14,10 +14,6 @@ import (
 
 // CreateUser - allows an admin to create a user.
 func CreateUser(w http.ResponseWriter, r *http.Request) {
-	if !r.Context().Value("isAdmin").(bool) {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
-	}
 	userParams := models.CreateUserParams{}
 	r.ParseForm()
 	if r.Form.Get("Username") == "" || r.Form.Get("Password") == "" ||
@@ -31,6 +27,11 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	password, salt := crypto.GeneratePassword(r.Form.Get("Password"), 144)
 	userParams.Password = password
 	userParams.Salt = salt
+
+	if userParams.Isadmin && r.Context().Value("isAdmin") == nil {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
 
 	if user, err := q.CreateUser(ctx, userParams); err != nil {
 		http.Error(w, "Internal Error", http.StatusInternalServerError)

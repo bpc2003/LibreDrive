@@ -22,8 +22,8 @@ func main() {
 	r.Route("/nav", routers.NavRoute)
 	r.Route("/api/files", routers.FileRoutes)
 	r.Route("/api/users", routers.UserRoutes)
-	r.Route("/api/register", routers.RegisterRoute)
 	r.Post("/api/login", controllers.LoginUser)
+	r.Post("/api/register", controllers.CreateUser)
 
 	log.Println("Server running on Port " + global.PORT)
 	log.Fatal(http.ListenAndServe(":" + global.PORT, r))
