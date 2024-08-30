@@ -19,7 +19,7 @@ templ Users(users []models.User) {
         </td>
         <td>
           <form hx-put={ fmt.Sprintf("/api/users/%d/reset", user.ID) } hx-confirm="Reset Password?">
-            <input type="password" name="Password" class="form-control" style="display:inline;width:25%;">
+            <input required type="password" name="Password" class="form-control" style="display:inline;width:25%;">
             <button class="btn btn-warning">Reset Password</button>
           </form>
         </td>

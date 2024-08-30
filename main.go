@@ -2,6 +2,8 @@
 package main
 
 import (
+	"embed"
+	"io/fs"
 	"log"
 	"net/http"
 
@@ -12,9 +14,13 @@ import (
 	"libredrive/routers"
 )
 
+//go:embed public/*
+var content embed.FS
+
 func main() {
 	r := chi.NewRouter()
-	fs := http.FileServer(http.Dir("./public"))
+	public, _ := fs.Sub(content, "public")
+	fs := http.FileServer(http.FS(public))
 
 	r.Use(middleware.Logger)
 

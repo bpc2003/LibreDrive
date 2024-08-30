@@ -35,7 +35,7 @@ templ Nav(id int, isAdmin bool) {
           </div>
           <div class="modal-body">
             <form hx-put={ fmt.Sprintf("/api/users/%d", id) } hx-confirm="Are you sure you want to change your password?">
-              <input type="password" name="Password" class="form-control mb-3">
+              <input required type="password" name="Password" class="form-control mb-3">
               <button class="btn btn-outline-dark">Change Password</button>
             </form>
           </div>

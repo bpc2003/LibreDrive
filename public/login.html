@@ -1,1 +1,22 @@
-<!doctypehtml><title>Login</title><link href=/static/css/bootstrap.min.css rel=stylesheet><body style=background-image:url(/static/bright-squares.png)><div class="container-fluid justify-content-center mt-5"style=display:grid><h1>Login</h1><form action=/api/login method=POST><div class=mb-3><label>Username:</label> <input class=form-control name=Username></div><div class=mb-3><label>Password:</label> <input class=form-control name=Password type=password></div><input class="btn btn-primary mb-3"type=submit value=Login></form><a href="/register.html">Register</a></div>
+<!doctypehtml>
+<head>
+  <title>Login</title>
+  <link href=/static/css/bootstrap.min.css rel=stylesheet>
+</head>
+<body style=background-image:url(/static/bright-squares.png)>
+    <div class="container-fluid justify-content-center mt-5" style=display:grid>
+        <h1>Login</h1>
+        <form action=/api/login method=POST>
+            <div class=mb-3>
+              <label>Username:</label>
+              <input required class=form-control name=Username>
+            </div>
+            <div class=mb-3>
+              <label>Password:</label>
+              <input required class=form-control name=Password type=password>
+            </div>
+            <input class="btn btn-primary mb-3" type=submit value=Login>
+        </form>
+        <a href="/register.html">Register</a>
+    </div>
+</body>
