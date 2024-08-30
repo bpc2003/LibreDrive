@@ -44,7 +44,7 @@ func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
 	}
-	password, salt := crypto.GeneratePassword(r.Form.Get("Password"), 14)
+	password, salt := crypto.GeneratePassword(r.Form.Get("Password"), 144)
 	passwordParams.Password = password
 	passwordParams.Salt = salt
 	passwordParams.ID = int64(userId)
@@ -53,7 +53,14 @@ func ChangeUserPassword(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	} else {
 		key := r.Context().Value("key").(string)
-		nk := fmt.Sprintf("%x", sha256.Sum256([]byte(r.Form.Get("Password"))))
+		nk := r.Form.Get("Password")
+		var h [sha256.Size]byte
+		for _, r := range salt {
+			h = sha256.Sum256([]byte(string(r) + nk))
+			nk = string(h[:])
+		}
+		h = sha256.Sum256([]byte(nk + salt))
+		nk = fmt.Sprintf("%x", h)
 		files, _ := os.ReadDir(path.Join("users", strconv.Itoa(userId)))
 		for _, file := range files {
 			f, _ := os.OpenFile(path.Join("users", strconv.Itoa(userId), file.Name()), os.O_RDWR, 0640)

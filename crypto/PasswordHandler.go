@@ -17,9 +17,8 @@ func GeneratePassword(password string, rounds int) (string, string) {
 		password = string(h[:])
 	}
 	h := sha512.Sum512([]byte(password))
-	password = string(h[:])
 
-	return password, salt
+	return fmt.Sprintf("%x", h), salt
 }
 
 // ComparePassword - compares a password and salt with a hashed password
@@ -30,5 +29,5 @@ func ComparePassword(password, salt, hashed string) bool {
 		password = string(h[:])
 	}
 
-	return fmt.Sprintf("%s", sha512.Sum512(h[:])) == hashed
+	return fmt.Sprintf("%x", sha512.Sum512(h[:])) == hashed
 }
