@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 
 	"libredrive/crypto"
 	"libredrive/models"
@@ -28,13 +29,22 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	userParams.Password = password
 	userParams.Salt = salt
 
-	if userParams.Isadmin && r.Context().Value("isAdmin") == nil {
-		http.Error(w, "Forbidden", http.StatusForbidden)
-		return
+	if userParams.Isadmin {
+		auth, _ := r.Cookie("auth")
+		if auth == nil {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
+		attrs := strings.Split(auth.Value, "&")
+		isAdmin, _ := strconv.ParseBool(attrs[1])
+		if !isAdmin {
+			http.Error(w, "Forbidden", http.StatusForbidden)
+			return
+		}
 	}
 
 	if user, err := q.CreateUser(ctx, userParams); err != nil {
-		http.Error(w, "Internal Error", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	} else {
 		os.MkdirAll(path.Join("users", strconv.Itoa(int(user.ID))), 0750)
 		http.Redirect(w, r, "/", http.StatusSeeOther)
