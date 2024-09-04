@@ -7,10 +7,14 @@ SELECT * FROM Users WHERE username = ?;
 -- name: CreateUser :one
 INSERT INTO Users (
   username,
+  email,
   password,
   salt,
-  isAdmin
+  isAdmin,
+  active
 ) VALUES (
+  ?,
+  ?,
   ?,
   ?,
   ?,
@@ -26,3 +30,6 @@ SELECT * FROM Users WHERE id = ?;
 
 -- name: ChangePassword :one
 UPDATE Users SET password = ?, salt = ? WHERE id = ? RETURNING *;
+
+-- name: MarkActive :exec
+Update Users SET active = true WHERE id = ?;

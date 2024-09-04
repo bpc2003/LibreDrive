@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"libredrive/crypto"
+	"libredrive/global"
 	"libredrive/models"
 	"libredrive/templates"
 )
@@ -29,6 +30,21 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 	} else {
 		templates.Users(users).Render(ctx, w)
 	}
+}
+
+func MarkUserActive(w http.ResponseWriter, r *http.Request) {
+	var userId int64
+	
+	id := chi.URLParam(r, "id")
+	if userId = global.ActiveTab[id]; userId == 0 {
+		fmt.Println(global.ActiveTab)
+		http.Error(w, "Not Found", http.StatusNotFound)
+		return
+	}
+
+	q.MarkActive(ctx, userId)
+	delete(global.ActiveTab, id)
+	w.Write([]byte("Account Activated"))
 }
 
 // ChangeUserPassword - allows a user to change their password.

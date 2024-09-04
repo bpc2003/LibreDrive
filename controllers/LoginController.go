@@ -3,13 +3,16 @@ package controllers
 import (
 	"crypto/sha256"
 	"fmt"
+	"log"
 	"net/http"
+	"net/smtp"
 	"os"
 	"path"
 	"strconv"
 	"strings"
 
 	"libredrive/crypto"
+	"libredrive/global"
 	"libredrive/models"
 )
 
@@ -24,7 +27,9 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userParams.Username = r.Form.Get("Username")
+	userParams.Email = r.Form.Get("Email")
 	userParams.Isadmin = r.Form.Get("IsAdmin") == "on"
+	userParams.Active = false
 	password, salt := crypto.GeneratePassword(r.Form.Get("Password"), 144)
 	userParams.Password = password
 	userParams.Salt = salt
@@ -47,6 +52,14 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	} else {
 		os.MkdirAll(path.Join("users", strconv.Itoa(int(user.ID))), 0750)
+		global.ActiveTab[user.Password] = user.ID
+		err := smtp.SendMail(global.AUTH_HOST+":"+global.AUTH_PORT,
+			global.Auth, global.AUTH_EMAIL,
+			[]string{user.Email},
+			[]byte("Activate Your Account Here: http://" + global.HOST + ":" + global.PORT + "/api/activate/" + user.Password))
+		if err != nil {
+			log.Fatal(err.Error())
+		}
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
 }
@@ -59,7 +72,8 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := q.GetUser(ctx, Username)
 	if err != nil ||
-		crypto.ComparePassword(Password, user.Salt, user.Password) == false {
+		crypto.ComparePassword(Password, user.Salt, user.Password) == false ||
+		user.Active == false {
 		http.Error(w, "Incorrect Username or Password", http.StatusForbidden)
 		return
 	}

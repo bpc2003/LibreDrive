@@ -30,7 +30,8 @@ func main() {
 	r.Route("/api/users", routers.UserRoutes)
 	r.Post("/api/login", controllers.LoginUser)
 	r.Post("/api/register", controllers.CreateUser)
+	r.Get("/api/activate/{id}", controllers.MarkUserActive)
 
-	log.Println("Server running on Port " + global.PORT)
-	log.Fatal(http.ListenAndServe(":" + global.PORT, r))
+	log.Println("Server running on " + global.HOST + ":" + global.PORT)
+	log.Fatal(http.ListenAndServe(global.HOST + ":" + global.PORT, r))
 }

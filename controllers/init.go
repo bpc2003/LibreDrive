@@ -34,7 +34,7 @@ func init() {
 
 	if u, _ := q.GetUsers(ctx); len(u) == 0 {
 		password, salt := crypto.GeneratePassword(global.ADMIN_PASSWORD, 144)
-		_, err = q.CreateUser(ctx, models.CreateUserParams{Username: "admin", Password: string(password), Salt: salt, Isadmin: true})
+		_, err = q.CreateUser(ctx, models.CreateUserParams{Username: "admin", Email: global.ADMIN_EMAIL, Password: string(password), Salt: salt, Isadmin: true, Active: true})
 		if err != nil || os.MkdirAll(path.Join("users", "1"), 0750) != nil {
 			log.Fatal(err)
 		}
