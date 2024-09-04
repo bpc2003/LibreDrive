@@ -37,7 +37,6 @@ func MarkUserActive(w http.ResponseWriter, r *http.Request) {
 	
 	id := chi.URLParam(r, "id")
 	if userId = global.ActiveTab[id]; userId == 0 {
-		fmt.Println(global.ActiveTab)
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return
 	}
