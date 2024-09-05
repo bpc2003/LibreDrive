@@ -56,7 +56,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		err := smtp.SendMail(global.AUTH_HOST+":"+global.AUTH_PORT,
 			global.Auth, global.AUTH_EMAIL,
 			[]string{user.Email},
-			[]byte("Activate Your Account Here: http://" + global.HOST + ":" + global.PORT + "/api/activate/" + user.Password))
+			[]byte("Hello, "+user.Username+"\nPlease activate Your Account Here:\nhttp://"+global.HOST+":"+global.PORT+"/api/activate/"+user.Password))
 		if err != nil {
 			log.Fatal(err.Error())
 		}
@@ -72,9 +72,11 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	user, err := q.GetUser(ctx, Username)
 	if err != nil ||
-		crypto.ComparePassword(Password, user.Salt, user.Password) == false ||
-		user.Active == false {
-		http.Error(w, "Incorrect Username or Password", http.StatusForbidden)
+		crypto.ComparePassword(Password, user.Salt, user.Password) == false {
+		w.Write([]byte("<p class=p-3>Incorrect Username or Password</p>"))
+		return
+	} else if user.Active == false {
+		w.Write([]byte("<p class=p-3>Please Activate your account</p>"))
 		return
 	}
 	var h [sha256.Size]byte
@@ -90,5 +92,16 @@ func LoginUser(w http.ResponseWriter, r *http.Request) {
 		Path:   "/",
 	}
 	http.SetCookie(w, &c)
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	w.Header().Set("HX-Redirect", "/")
+}
+
+func LogoutUser(w http.ResponseWriter, r *http.Request) {
+	c := http.Cookie{
+		Name:   "auth",
+		Path:   "/",
+		MaxAge: -1,
+		Value:  "",
+	}
+	http.SetCookie(w, &c)
+	w.Header().Set("HX-Refresh", "true")
 }

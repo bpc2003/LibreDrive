@@ -24,6 +24,11 @@ templ Nav(id int, isAdmin bool) {
               Change Password
             </p>
         </li>
+        <li class="nav-item" hx-get="/api/logout">
+          <p class="nav-link">
+            Logout
+          </p>
+        </li>
       </ul>
     </div>
     <div class="modal fade" tabindex="-1" id="change-password" data-bs-theme="light">
