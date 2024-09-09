@@ -33,6 +33,6 @@ func main() {
 	r.Get("/api/logout", controllers.LogoutUser)
 	r.Get("/api/activate/{id}", controllers.MarkUserActive)
 
-	log.Println("Server running on " + global.HOST + ":" + global.PORT)
-	log.Fatal(http.ListenAndServe(global.HOST + ":" + global.PORT, r))
+	log.Println("Server running on " + global.HOST)
+	log.Fatal(http.ListenAndServe(global.HOST, r))
 }

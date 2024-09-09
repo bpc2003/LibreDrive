@@ -42,7 +42,6 @@ func init() {
 	AUTH_HOST = os.Getenv("AUTH_HOST")
 	AUTH_PORT = os.Getenv("AUTH_PORT")
 	HOST = os.Getenv("HOST")
-	PORT = os.Getenv("PORT")
 	Auth = smtp.PlainAuth("", AUTH_EMAIL, AUTH_PASSWORD, AUTH_HOST)
 	ActiveTab = make(map[string]int64)
 }

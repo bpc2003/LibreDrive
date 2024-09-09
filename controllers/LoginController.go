@@ -56,7 +56,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		err := smtp.SendMail(global.AUTH_HOST+":"+global.AUTH_PORT,
 			global.Auth, global.AUTH_EMAIL,
 			[]string{user.Email},
-			[]byte("Hello, "+user.Username+"\nPlease activate Your Account Here:\nhttp://"+global.HOST+":"+global.PORT+"/api/activate/"+user.Password))
+			[]byte("Hello, "+user.Username+"\nPlease activate Your Account Here:\nhttp://"+global.HOST+"/api/activate/"+user.Password))
 		if err != nil {
 			log.Fatal(err.Error())
 		}
