@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"log"
+	"math/rand/v2"
 	"net/http"
 	"net/smtp"
 	"os"
@@ -52,11 +53,15 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	} else {
 		os.MkdirAll(path.Join("users", strconv.Itoa(int(user.ID))), 0750)
-		global.ActiveTab[user.Password] = user.ID
+		n := rand.Int()
+		for global.ActiveTab[n] != 0 {
+			n = rand.Int()
+		}
+		global.ActiveTab[n] = user.ID
 		err := smtp.SendMail(global.AUTH_HOST+":"+global.AUTH_PORT,
 			global.Auth, global.AUTH_EMAIL,
 			[]string{user.Email},
-			[]byte("Hello, "+user.Username+"\nPlease activate Your Account Here:\nhttp://"+global.HOST+"/api/activate/"+user.Password))
+			[]byte("Hello, "+user.Username+"\nPlease activate Your Account Here:\nhttp://"+global.HOST+"/api/activate/"+strconv.Itoa(n)))
 		if err != nil {
 			log.Fatal(err.Error())
 		}

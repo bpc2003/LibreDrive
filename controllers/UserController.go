@@ -35,7 +35,7 @@ func GetUsers(w http.ResponseWriter, r *http.Request) {
 func MarkUserActive(w http.ResponseWriter, r *http.Request) {
 	var userId int64
 	
-	id := chi.URLParam(r, "id")
+	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 	if userId = global.ActiveTab[id]; userId == 0 {
 		http.Error(w, "Not Found", http.StatusNotFound)
 		return

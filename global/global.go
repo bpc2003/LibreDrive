@@ -19,7 +19,7 @@ var (
 	AUTH_HOST      string
 	AUTH_PORT      string
 	Auth           smtp.Auth
-	ActiveTab      map[string]int64
+	ActiveTab      map[int]int64
 )
 
 func init() {
@@ -43,5 +43,5 @@ func init() {
 	AUTH_PORT = os.Getenv("AUTH_PORT")
 	HOST = os.Getenv("HOST")
 	Auth = smtp.PlainAuth("", AUTH_EMAIL, AUTH_PASSWORD, AUTH_HOST)
-	ActiveTab = make(map[string]int64)
+	ActiveTab = make(map[int]int64)
 }
